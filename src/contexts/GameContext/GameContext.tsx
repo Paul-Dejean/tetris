@@ -1,9 +1,15 @@
 import { createContext } from "react";
-import { Action, GameStatus } from "./types";
+import { Action, GameStatus, State } from "./types";
 
-export const initialState = {
+export const GAME_WIDTH = 10;
+export const GAME_HEIGHT = 20;
+
+export const initialState: State = {
   status: GameStatus.INITIAL,
-  board: Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => "")),
+  board: Array.from({ length: GAME_HEIGHT }, () =>
+    Array.from({ length: GAME_WIDTH }, () => "")
+  ),
+  currentPiece: null,
 };
 
 export const GameContext = createContext({
