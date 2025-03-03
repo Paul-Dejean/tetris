@@ -3,6 +3,7 @@ import { useGame } from "../contexts/GameContext";
 import { ActionType, GameStatus } from "../contexts/GameContext/types";
 import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
+import tetrisTheme from "../assets/tetris-theme.mp3";
 
 const FALLING_SPEED = 1000;
 export function TetrisBoard() {
@@ -92,6 +93,7 @@ export function TetrisBoard() {
             </div>
           ))}
         </div>
+        <audio src={tetrisTheme} autoPlay loop></audio>
       </div>
     </div>
   );
