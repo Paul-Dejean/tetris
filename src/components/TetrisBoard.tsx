@@ -55,17 +55,21 @@ export function TetrisBoard() {
             <div className="flex" key={rowIndex}>
               {row.map((cell, cellIndex) => {
                 // console.log({ cell });
-                const backgroundColor = cell
-                  ? tetrominoes[cell as Tetromino]?.color
-                  : "transparent";
+                const style = cell
+                  ? {
+                      backgroundColor: tetrominoes[cell as Tetromino].color,
+                      borderWidth: "5px",
+                      borderStyle: "outset",
+                      borderRadius: "2px",
+                      borderColor: tetrominoes[cell as Tetromino].color,
+                    }
+                  : {};
 
                 return (
                   <div
                     key={cellIndex}
                     className="border w-8 h-8"
-                    style={{
-                      backgroundColor: cell && backgroundColor,
-                    }}
+                    style={style}
                   ></div>
                 );
               })}
