@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useGame } from "../contexts/GameContext";
-import { ActionType } from "../contexts/GameContext/types";
+import { ActionType, GameStatus } from "../contexts/GameContext/types";
 import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
 
@@ -24,7 +24,7 @@ export function TetrisBoard() {
     onUp: () => dispatch({ type: ActionType.ROTATE }),
   });
   const gameLoop = (time: number) => {
-    if (previousTimeRef.current) {
+    if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
       const deltaTime = time - previousTimeRef.current;
       timeAccumulatorRef.current += deltaTime;
 
@@ -41,6 +41,22 @@ export function TetrisBoard() {
     requestAnimationFrame(gameLoop);
     return () => {
       cancelAnimationFrame(requestRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        dispatch({ type: ActionType.PAUSE_GAME });
+      } else {
+        dispatch({ type: ActionType.RESUME_GAME });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

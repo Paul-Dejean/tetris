@@ -39,6 +39,24 @@ function reducer(state: State, action: Action) {
         currentPiece: createNewPiece(),
       };
 
+    case ActionType.PAUSE_GAME:
+      if (state.status !== GameStatus.PLAYING) {
+        return state;
+      }
+      return {
+        ...state,
+        status: GameStatus.PAUSED,
+      };
+
+    case ActionType.RESUME_GAME:
+      if (state.status !== GameStatus.PAUSED) {
+        return state;
+      }
+      return {
+        ...state,
+        status: GameStatus.PLAYING,
+      };
+
     case ActionType.MOVE_DOWN:
     case ActionType.TICK:
       return moveDown(state);
@@ -116,10 +134,7 @@ function canPlace(
         ) {
           return false;
         }
-        if (
-          board[y + newPosition.y][x + newPosition.x] &&
-          board[y + newPosition.y][x + newPosition.x] !== "G"
-        ) {
+        if (board[y + newPosition.y][x + newPosition.x]) {
           return false;
         }
       }
