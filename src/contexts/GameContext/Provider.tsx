@@ -5,7 +5,14 @@ import {
   GameContext,
   initialState,
 } from "./GameContext";
-import { State, ActionType, GameStatus, Action, Piece } from "./types";
+import {
+  State,
+  ActionType,
+  GameStatus,
+  Action,
+  Piece,
+  Rotation,
+} from "./types";
 import { Tetromino, tetrominoes } from "./tetrominoes";
 
 const initialPosition = {
@@ -32,16 +39,35 @@ function reducer(state: State, action: Action) {
         currentPiece: createNewPiece(),
       };
 
+    case ActionType.MOVE_DOWN:
     case ActionType.TICK:
-      console.log("tick");
       return moveDown(state);
+
+    case ActionType.MOVE_LEFT:
+      return moveLeft(state);
+    case ActionType.MOVE_RIGHT:
+      return moveRight(state);
+
+    case ActionType.ROTATE:
+      return rotate(state);
+    case ActionType.HARD_DROP:
+      return hardDrop(state);
     default:
       return state;
   }
 }
 
+function paintPieces(board: string[][], pieces: Piece[]) {
+  let newBoard = board;
+  for (const piece of pieces) {
+    newBoard = paintPiece(newBoard, piece);
+  }
+  //   console.log({ newBoard });
+  return board;
+}
+
 function paintPiece(board: string[][], piece: Piece) {
-  const block = tetrominoes[piece.type];
+  const block = tetrominoes[piece.type].shapes[piece.rotation];
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
@@ -52,8 +78,17 @@ function paintPiece(board: string[][], piece: Piece) {
   return board;
 }
 
+function unpaintPieces(board: string[][], pieces: Piece[]) {
+  let newBoard = board;
+  for (const piece of pieces) {
+    newBoard = unpaintPiece(newBoard, piece);
+  }
+  //   console.log({ newBoard });
+  return newBoard;
+}
+
 function unpaintPiece(board: string[][], piece: Piece) {
-  const block = tetrominoes[piece.type];
+  const block = tetrominoes[piece.type].shapes[piece.rotation];
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
@@ -69,8 +104,8 @@ function canPlace(
   piece: Piece,
   newPosition: { x: number; y: number }
 ) {
-  console.log({ board, piece, newPosition });
-  const block = tetrominoes[piece.type];
+  //   console.log({ board, piece, newPosition });
+  const block = tetrominoes[piece.type].shapes[piece.rotation];
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
@@ -81,7 +116,10 @@ function canPlace(
         ) {
           return false;
         }
-        if (board[y + newPosition.y][x + newPosition.x]) {
+        if (
+          board[y + newPosition.y][x + newPosition.x] &&
+          board[y + newPosition.y][x + newPosition.x] !== "G"
+        ) {
           return false;
         }
       }
@@ -96,12 +134,15 @@ function applyPieceToBoard(state: State): State {
     return state;
   }
   const board = state.board.map((row) => [...row]);
-  const newBoard = paintPiece(board, piece);
+  const newBoard = paintPieces(board, [piece]);
+
+  const { board: finalBoard, score } = clearFullLines(newBoard);
 
   const newState = {
     ...state,
-    board: newBoard,
+    board: finalBoard,
     currentPiece: createNewPiece(),
+    score: state.score + score,
   };
   return newState;
 }
@@ -114,13 +155,15 @@ function moveDown(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPiece(board, piece);
+  const newBoard = unpaintPieces(board, [piece]);
   const newPosition = { ...piece.position, y: piece.position.y + 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
-  console.log({ shouldMove });
+  //   console.log({ shouldMove });
+
   if (shouldMove) {
-    const result = paintPiece(newBoard, { ...piece, position: newPosition });
+    const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+
     return {
       ...state,
       board: result,
@@ -129,6 +172,144 @@ function moveDown(state: State): State {
   }
 
   return applyPieceToBoard(state);
+}
+
+function moveLeft(state: State): State {
+  const piece = state.currentPiece;
+  if (!piece) {
+    return state;
+  }
+  const board = state.board.map((row) => [...row]);
+
+  const newBoard = unpaintPieces(board, [piece]);
+  const newPosition = { ...piece.position, x: piece.position.x - 1 };
+
+  const shouldMove = canPlace(board, piece, newPosition);
+  //   console.log({ shouldMove });
+  if (!shouldMove) {
+    return state;
+  }
+
+  const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+  return {
+    ...state,
+    board: result,
+    currentPiece: { ...piece, position: newPosition },
+  };
+}
+
+function rotate(state: State): State {
+  const piece = state.currentPiece;
+  if (!piece) {
+    return state;
+  }
+  const board = state.board.map((row) => [...row]);
+
+  const newBoard = unpaintPieces(board, [piece]);
+  const newRotation = ((piece.rotation + 1) % 4) as Rotation;
+  const newPiece = { ...piece, rotation: newRotation };
+  const shouldRotate = canPlace(board, newPiece, piece.position);
+  if (!shouldRotate) {
+    return state;
+  }
+
+  const result = paintPieces(newBoard, [newPiece]);
+  return {
+    ...state,
+    board: result,
+    currentPiece: newPiece,
+  };
+}
+
+function moveRight(state: State): State {
+  console.log("right");
+  const piece = state.currentPiece;
+  if (!piece) {
+    return state;
+  }
+  const board = state.board.map((row) => [...row]);
+
+  const newBoard = unpaintPieces(board, [piece]);
+  const newPosition = { ...piece.position, x: piece.position.x + 1 };
+
+  const shouldMove = canPlace(board, piece, newPosition);
+  //   console.log({ shouldMove });
+  if (!shouldMove) {
+    return state;
+  }
+
+  const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+
+  return {
+    ...state,
+    board: result,
+    currentPiece: { ...piece, position: newPosition },
+  };
+}
+
+function hardDrop(state: State): State {
+  const piece = state.currentPiece;
+  if (!piece) {
+    return state;
+  }
+  const board = state.board.map((row) => [...row]);
+
+  const newBoard = unpaintPieces(board, [piece]);
+
+  const newPiece = {
+    position: { ...piece.position },
+    rotation: piece.rotation,
+    type: piece.type,
+  };
+  while (
+    canPlace(newBoard, newPiece, {
+      x: newPiece.position.x,
+      y: newPiece.position.y + 1,
+    })
+  ) {
+    newPiece.position.y += 1;
+  }
+  const result = paintPieces(newBoard, [newPiece]);
+
+  const { board: finalBoard, score } = clearFullLines(result);
+
+  return {
+    ...state,
+    board: finalBoard,
+    currentPiece: createNewPiece(),
+    score: state.score + score,
+  };
+}
+
+function calculateScore(nbLinesCleared: number) {
+  switch (nbLinesCleared) {
+    case 1:
+      return 40;
+    case 2:
+      return 100;
+    case 3:
+      return 300;
+    case 4:
+      return 1200;
+    default:
+      return 0;
+  }
+}
+
+function clearFullLines(board: string[][]) {
+  const newBoard = board.map((row) => [...row]);
+
+  let nbLinesCleared = 0;
+  for (let y = 0; y < newBoard.length; y++) {
+    if (newBoard[y].every((cell) => cell)) {
+      newBoard.splice(y, 1);
+      newBoard.unshift(Array.from({ length: GAME_WIDTH }, () => ""));
+      nbLinesCleared += 1;
+    }
+  }
+
+  const score = calculateScore(nbLinesCleared);
+  return { board: newBoard, score };
 }
 
 export function GameProvider({ children }: { children: React.ReactNode }) {

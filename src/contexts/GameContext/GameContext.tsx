@@ -10,6 +10,7 @@ export const initialState: State = {
     Array.from({ length: GAME_WIDTH }, () => "")
   ),
   currentPiece: null,
+  score: 0,
 };
 
 export const GameContext = createContext({

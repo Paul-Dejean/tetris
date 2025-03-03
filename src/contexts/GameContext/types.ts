@@ -4,6 +4,7 @@ export type State = {
   status: GameStatus;
   board: string[][];
   currentPiece: null | Piece;
+  score: number;
 };
 
 export enum GameStatus {
@@ -22,8 +23,19 @@ export type Rotation = 0 | 1 | 2 | 3;
 
 export type Action =
   | { type: ActionType.START_GAME }
-  | { type: ActionType.TICK };
+  | { type: ActionType.TICK }
+  | { type: ActionType.MOVE_DOWN }
+  | { type: ActionType.MOVE_LEFT }
+  | { type: ActionType.MOVE_RIGHT }
+  | { type: ActionType.HARD_DROP }
+  | { type: ActionType.ROTATE };
+
 export enum ActionType {
   START_GAME = "START_GAME",
   TICK = "TICK",
+  MOVE_DOWN = "MOVE_DOWN",
+  MOVE_LEFT = "MOVE_LEFT",
+  MOVE_RIGHT = "MOVE_RIGHT",
+  HARD_DROP = "HARD_DROP",
+  ROTATE = "ROTATE",
 }
