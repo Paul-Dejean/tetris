@@ -11,6 +11,7 @@ export const initialState: State = {
   ),
   currentPiece: null,
   score: 0,
+  bag: [],
 };
 
 export const GameContext = createContext({

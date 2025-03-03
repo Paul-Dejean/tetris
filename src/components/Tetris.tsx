@@ -8,6 +8,8 @@ export function Tetris() {
 
   if (state.status === GameStatus.INITIAL) {
     return <WelcomeScreen />;
+  } else if (state.status === GameStatus.GAME_OVER) {
+    return <div className="text-white text-xl">Game Over</div>;
   }
   return <TetrisBoard />;
 }

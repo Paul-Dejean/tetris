@@ -5,6 +5,7 @@ export type State = {
   board: string[][];
   currentPiece: null | Piece;
   score: number;
+  bag: Tetromino[];
 };
 
 export enum GameStatus {

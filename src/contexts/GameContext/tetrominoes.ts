@@ -189,13 +189,13 @@ const tetrominoZ: Record<Rotation, string[][]> = {
 };
 
 export const tetrominoes = {
-  I: { shapes: tetrominoI, color: "#75FBFD" },
-  J: { shapes: tetrominoJ, color: "#0000F5" },
-  L: { shapes: tetrominoL, color: "#EF8833" },
-  O: { shapes: tetrominoO, color: "#FFFF54" },
-  S: { shapes: tetrominoS, color: "#75FB4C" },
-  T: { shapes: tetrominoT, color: "#EA33F7" },
-  Z: { shapes: tetrominoZ, color: "#75FB4C" },
+  I: { shapes: tetrominoI, color: "#7EC7D1" },
+  J: { shapes: tetrominoJ, color: "#4959A0" },
+  L: { shapes: tetrominoL, color: "#E3B14F" },
+  O: { shapes: tetrominoO, color: "#EAE762" },
+  S: { shapes: tetrominoS, color: "#76BB5F" },
+  T: { shapes: tetrominoT, color: "#855FA0" },
+  Z: { shapes: tetrominoZ, color: "#D94F40" },
 };
 
 console.log({ tetrominoes });
