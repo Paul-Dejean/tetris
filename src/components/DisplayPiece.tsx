@@ -31,7 +31,9 @@ export function DisplayPiece({ type }: { type: Tetromino }) {
   const nextPiece = tetrominoes[type];
 
   const shape = trimShape(nextPiece.shapes[0]);
+
   const numCols = shape[0].length;
+
   return (
     <div
       className="grid"
@@ -39,7 +41,7 @@ export function DisplayPiece({ type }: { type: Tetromino }) {
     >
       {shape.map((row) => {
         return row.map((cell, cellIndex) => {
-          if (!cell) return null;
+          if (!cell) return <div />;
           const style = cell
             ? {
                 backgroundColor: nextPiece.color,

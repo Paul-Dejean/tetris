@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useGame } from "../contexts/GameContext";
 import { ActionType, GameStatus } from "../contexts/GameContext/types";
 import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
@@ -14,39 +14,40 @@ export function TetrisBoard() {
   const previousTimeRef = useRef(0);
   const board = state.board;
   const timeAccumulatorRef = useRef(0);
-  //   console.log({ board });
 
   useKeyboardControls({
     onLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
     onRight: () => dispatch({ type: ActionType.MOVE_RIGHT }),
     onDown: () => dispatch({ type: ActionType.MOVE_DOWN }),
     onSpace: () => {
-      console.log("space");
       dispatch({ type: ActionType.HARD_DROP });
     },
     onUp: () => dispatch({ type: ActionType.ROTATE }),
     onShift: () => dispatch({ type: ActionType.HOLD_PIECE }),
   });
-  const gameLoop = (time: number) => {
-    if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
-      const deltaTime = time - previousTimeRef.current;
-      timeAccumulatorRef.current += deltaTime;
+  const gameLoop = useCallback(
+    (time: number) => {
+      if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
+        const deltaTime = time - previousTimeRef.current;
+        timeAccumulatorRef.current += deltaTime;
 
-      if (timeAccumulatorRef.current >= FALLING_SPEED) {
-        dispatch({ type: ActionType.TICK });
-        timeAccumulatorRef.current = 0;
+        if (timeAccumulatorRef.current >= FALLING_SPEED) {
+          dispatch({ type: ActionType.TICK });
+          timeAccumulatorRef.current = 0;
+        }
       }
-    }
-    previousTimeRef.current = time;
-    requestRef.current = requestAnimationFrame(gameLoop);
-  };
+      previousTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(gameLoop);
+    },
+    [dispatch, state.status]
+  );
 
   useEffect(() => {
     requestAnimationFrame(gameLoop);
     return () => {
       cancelAnimationFrame(requestRef.current);
     };
-  }, []);
+  }, [gameLoop]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -62,7 +63,7 @@ export function TetrisBoard() {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <>
@@ -106,6 +107,18 @@ export function TetrisBoard() {
             <PieceQueue />
           </div>
         </div>
+        {state.status === GameStatus.GAME_OVER && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 gap-y-8">
+            <div className="text-white text-4xl">Game Over</div>
+            <div className="text-white text-2xl">Score: {state.score}</div>
+            <button
+              className="border-primary border-1 rounded-lg text-white py-2 px-4 text-xl"
+              onClick={() => dispatch({ type: ActionType.RESTART_GAME })}
+            >
+              Restart
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

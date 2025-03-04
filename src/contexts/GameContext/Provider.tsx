@@ -34,13 +34,10 @@ function createNewPiece(state: State): {
   nextPiecesQueue: Tetromino[];
 } {
   const nextPiecesQueue = [...state.nextPiecesQueue];
-
   const type = nextPiecesQueue.shift() as Tetromino;
-
   if (nextPiecesQueue.length == 0) {
     nextPiecesQueue.push(...createNextPiecesQueue());
   }
-
   return {
     piece: {
       type,
@@ -53,9 +50,8 @@ function createNewPiece(state: State): {
 
 function reducer(state: State, action: Action) {
   switch (action.type) {
-    case ActionType.START_GAME:
-      return startGame(state);
-
+    case ActionType.RESTART_GAME:
+      return init();
     case ActionType.PAUSE_GAME:
       return pauseGame(state);
 
@@ -91,15 +87,15 @@ function holdPiece(state: State): State {
     return state;
   }
   const piece = state.currentPiece;
-
   const board = state.board.map((row) => [...row]);
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
 
   if (!state.holdPiece) {
     const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
+    paintPieces(board, [newPiece]);
     return {
       ...state,
-      board: paintPieces(newBoard, [newPiece]),
+      board,
       currentPiece: newPiece,
       holdPiece: piece.type,
       canHold: false,
@@ -111,26 +107,13 @@ function holdPiece(state: State): State {
     position: initialPosition,
     rotation: 0 as Rotation,
   };
+  paintPieces(board, [newPiece]);
   return {
     ...state,
-    board: paintPieces(newBoard, [newPiece]),
+    board,
     currentPiece: newPiece,
     holdPiece: piece.type,
     canHold: false,
-  };
-}
-
-function startGame(state: State): State {
-  // console.log("startGame");
-  const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
-  const board = state.board.map((row) => [...row]);
-  const newBoard = paintPieces(board, [newPiece]);
-  return {
-    ...state,
-    board: newBoard,
-    status: GameStatus.PLAYING,
-    currentPiece: newPiece,
-    nextPiecesQueue,
   };
 }
 
@@ -155,12 +138,9 @@ function resumeGame(state: State): State {
 }
 
 function paintPieces(board: string[][], pieces: Piece[]) {
-  let newBoard = board;
   for (const piece of pieces) {
-    newBoard = paintPiece(newBoard, piece);
+    paintPiece(board, piece);
   }
-
-  return board;
 }
 
 function paintPiece(board: string[][], piece: Piece) {
@@ -172,16 +152,12 @@ function paintPiece(board: string[][], piece: Piece) {
       }
     }
   }
-  return board;
 }
 
 function unpaintPieces(board: string[][], pieces: Piece[]) {
-  let newBoard = board;
   for (const piece of pieces) {
-    newBoard = unpaintPiece(newBoard, piece);
+    unpaintPiece(board, piece);
   }
-  //   console.log({ newBoard });
-  return newBoard;
 }
 
 function unpaintPiece(board: string[][], piece: Piece) {
@@ -193,7 +169,6 @@ function unpaintPiece(board: string[][], piece: Piece) {
       }
     }
   }
-  return board;
 }
 
 function canPlace(
@@ -224,15 +199,14 @@ function canPlace(
 
 function applyPieceToBoard(state: State): State {
   const piece = state.currentPiece;
-
   const board = state.board.map((row) => [...row]);
-  const newBoard = paintPieces(board, [piece]);
-
-  const { board: finalBoard, score } = clearFullLines(newBoard);
+  paintPieces(board, [piece]);
+  const nbLinesCleared = clearFullLines(board);
+  const score = calculateScore(nbLinesCleared);
 
   const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
 
-  if (!canPlace(finalBoard, newPiece, newPiece.position)) {
+  if (!canPlace(board, newPiece, newPiece.position)) {
     console.log();
     return {
       ...state,
@@ -240,9 +214,10 @@ function applyPieceToBoard(state: State): State {
     };
   }
 
+  paintPieces(board, [newPiece]);
   const newState = {
     ...state,
-    board: paintPiece(finalBoard, newPiece),
+    board,
     currentPiece: newPiece,
     score: state.score + score,
     nextPiecesQueue,
@@ -257,18 +232,17 @@ function moveDown(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
   const newPosition = { ...piece.position, y: piece.position.y + 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
-  //   console.log({ shouldMove });
 
   if (shouldMove) {
-    const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+    paintPieces(board, [{ ...piece, position: newPosition }]);
 
     return {
       ...state,
-      board: result,
+      board,
       currentPiece: { ...piece, position: newPosition },
     };
   }
@@ -281,19 +255,19 @@ function moveLeft(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
   const newPosition = { ...piece.position, x: piece.position.x - 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
-  //   console.log({ shouldMove });
+
   if (!shouldMove) {
     return state;
   }
 
-  const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+  paintPieces(board, [{ ...piece, position: newPosition }]);
   return {
     ...state,
-    board: result,
+    board,
     currentPiece: { ...piece, position: newPosition },
   };
 }
@@ -303,7 +277,7 @@ function rotate(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
   const newRotation = ((piece.rotation + 1) % 4) as Rotation;
   const newPiece = { ...piece, rotation: newRotation };
   const shouldRotate = canPlace(board, newPiece, piece.position);
@@ -311,10 +285,10 @@ function rotate(state: State): State {
     return state;
   }
 
-  const result = paintPieces(newBoard, [newPiece]);
+  paintPieces(board, [newPiece]);
   return {
     ...state,
-    board: result,
+    board,
     currentPiece: newPiece,
   };
 }
@@ -325,20 +299,20 @@ function moveRight(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
   const newPosition = { ...piece.position, x: piece.position.x + 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
-  //   console.log({ shouldMove });
+
   if (!shouldMove) {
     return state;
   }
 
-  const result = paintPieces(newBoard, [{ ...piece, position: newPosition }]);
+  paintPieces(board, [{ ...piece, position: newPosition }]);
 
   return {
     ...state,
-    board: result,
+    board,
     currentPiece: { ...piece, position: newPosition },
   };
 }
@@ -348,7 +322,7 @@ function hardDrop(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  const newBoard = unpaintPieces(board, [piece]);
+  unpaintPieces(board, [piece]);
 
   const newPiece = {
     position: { ...piece.position },
@@ -356,20 +330,21 @@ function hardDrop(state: State): State {
     type: piece.type,
   };
   while (
-    canPlace(newBoard, newPiece, {
+    canPlace(board, newPiece, {
       x: newPiece.position.x,
       y: newPiece.position.y + 1,
     })
   ) {
     newPiece.position.y += 1;
   }
-  const result = paintPieces(newBoard, [newPiece]);
+  paintPieces(board, [newPiece]);
 
-  const { board: finalBoard, score } = clearFullLines(result);
+  const nbLinesCleared = clearFullLines(board);
+  const score = calculateScore(nbLinesCleared);
 
   const { piece: createPiece, nextPiecesQueue } = createNewPiece(state);
   // console.log({ bag });
-  if (!canPlace(finalBoard, createPiece, createPiece.position)) {
+  if (!canPlace(board, createPiece, createPiece.position)) {
     return {
       ...state,
       status: GameStatus.GAME_OVER,
@@ -377,9 +352,11 @@ function hardDrop(state: State): State {
     };
   }
 
+  paintPieces(board, [createPiece]);
+
   return {
     ...state,
-    board: paintPieces(finalBoard, [createPiece]),
+    board,
     currentPiece: createPiece,
     score: state.score + score,
     nextPiecesQueue,
@@ -403,26 +380,23 @@ function calculateScore(nbLinesCleared: number) {
 }
 
 function clearFullLines(board: string[][]) {
-  const newBoard = board.map((row) => [...row]);
-
   let nbLinesCleared = 0;
-  for (let y = 0; y < newBoard.length; y++) {
-    if (newBoard[y].every((cell) => cell)) {
-      newBoard.splice(y, 1);
-      newBoard.unshift(Array.from({ length: GAME_WIDTH }, () => ""));
+  for (let y = 0; y < board.length; y++) {
+    if (board[y].every((cell) => cell)) {
+      board.splice(y, 1);
+      board.unshift(Array.from({ length: GAME_WIDTH }, () => ""));
       nbLinesCleared += 1;
     }
   }
 
-  const score = calculateScore(nbLinesCleared);
-  return { board: newBoard, score };
+  return nbLinesCleared;
 }
 
 export function init(): State {
   const nextPiecesQueue = createNextPiecesQueue();
   const currentPieceType = nextPiecesQueue.shift() as Tetromino;
   return {
-    status: GameStatus.INITIAL,
+    status: GameStatus.PLAYING,
     board: Array.from({ length: GAME_HEIGHT }, () =>
       Array.from({ length: GAME_WIDTH }, () => "")
     ),
