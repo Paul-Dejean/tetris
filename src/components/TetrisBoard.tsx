@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "../contexts/GameContext";
-import { ActionType, GameStatus } from "../contexts/GameContext/types";
-import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
+import { ActionType, GameStatus } from "../state/types";
+import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
 import tetrisTheme from "../assets/tetris-theme.mp3";
 import { PieceQueue } from "./PieceQueue";
 import { HoldPiece } from "./HoldPiece";
-import { getLevel, getLevelSpeed } from "../contexts/GameContext/Provider";
+
 import { useTouchControls } from "../hooks/useTouchControls";
+import { renderBoard, getLevel, getLevelSpeed } from "../engine";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -35,7 +36,7 @@ function createCellStyle(cell: string) {
 
 function fadeOut(element: HTMLElement, duration = 300, callback?: () => void) {
   let start: number | null = null;
-  console.log({ element });
+  // console.log({ element });
   const step = (timestamp: number) => {
     if (!start) start = timestamp;
     const progress = timestamp - start;
@@ -55,7 +56,9 @@ export function TetrisBoard() {
   const { state, dispatch } = useGame();
   const requestRef = useRef(0);
   const previousTimeRef = useRef(0);
-  const board = state.renderedBoard;
+  const board = useMemo(() => {
+    return renderBoard(state.board, state.currentPiece);
+  }, [state.board, state.currentPiece]);
   const timeAccumulatorRef = useRef(0);
   const [isClearingLines, setIsClearingLines] = useState(false);
 
@@ -102,14 +105,14 @@ export function TetrisBoard() {
         }
 
         if (state.fullLines.length && !isClearingLines) {
-          console.log("Clearing lines", isClearingLines);
+          // console.log("Clearing lines", isClearingLines);
 
           setIsClearingLines(true);
 
           const lineElements = state.fullLines.map((line) => {
             return document.querySelector(`#row-${line}`);
           });
-          console.log({ lineElements });
+          // console.log({ lineElements });
 
           let nb = 0;
           lineElements.forEach((lineElement) => {

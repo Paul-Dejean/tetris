@@ -1,7 +1,7 @@
 import React from "react";
 import { Layout } from "./components/Layout";
 import { Tetris } from "./components/Tetris";
-import { GameProvider } from "./contexts/GameContext/Provider";
+import { GameProvider } from "./contexts/GameProvider";
 import { ErrorBoundary } from "./errors/ErrorBoundary";
 
 function App() {

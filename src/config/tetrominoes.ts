@@ -1,4 +1,4 @@
-import { Rotation } from "./types";
+import { Rotation } from "../state/types";
 
 const tetrominoI: Record<Rotation, string[][]> = {
   0: [
@@ -198,5 +198,4 @@ export const tetrominoes = {
   Z: { shapes: tetrominoZ, color: "#D94F40" },
 };
 
-console.log({ tetrominoes });
 export type Tetromino = keyof typeof tetrominoes;

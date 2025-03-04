@@ -1,4 +1,4 @@
-import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
+import { Tetromino, tetrominoes } from "../config/tetrominoes";
 
 function trimShape(shape: string[][]) {
   // 1. Remove rows that are completely empty.

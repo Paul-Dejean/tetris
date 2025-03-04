@@ -1,9 +1,8 @@
-import { Tetromino } from "./tetrominoes";
+import { Tetromino } from "../config/tetrominoes";
 
 export type State = {
   status: GameStatus;
   board: string[][];
-  renderedBoard: string[][];
   currentPiece: Piece;
   score: number;
   nextPiecesQueue: Tetromino[];
