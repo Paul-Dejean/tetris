@@ -1,15 +1,19 @@
-import { useGame } from "../contexts/GameContext";
-import { GameStatus } from "../contexts/GameContext/types";
+import { useState } from "react";
 import { TetrisBoard } from "./TetrisBoard";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { ActionType } from "../contexts/GameContext/types";
+import { useGame } from "../contexts/GameContext";
 
 export function Tetris() {
-  const { state } = useGame();
+  const { dispatch } = useGame();
+  const [hasClickedStart, setHasClickedStart] = useState(false);
 
-  if (state.status === GameStatus.INITIAL) {
-    return <WelcomeScreen />;
-  } else if (state.status === GameStatus.GAME_OVER) {
-    return <div className="text-white text-xl">Game Over</div>;
+  const onStartClick = () => {
+    setHasClickedStart(true);
+    dispatch({ type: ActionType.START_GAME });
+  };
+  if (!hasClickedStart) {
+    return <WelcomeScreen onStartClick={onStartClick} />;
   }
   return <TetrisBoard />;
 }

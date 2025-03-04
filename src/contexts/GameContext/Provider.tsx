@@ -1,10 +1,5 @@
 import { useReducer } from "react";
-import {
-  GAME_HEIGHT,
-  GAME_WIDTH,
-  GameContext,
-  initialState,
-} from "./GameContext";
+import { GameContext } from "./GameContext";
 import {
   State,
   ActionType,
@@ -15,6 +10,8 @@ import {
 } from "./types";
 import { Tetromino, tetrominoes } from "./tetrominoes";
 
+export const GAME_WIDTH = 10;
+export const GAME_HEIGHT = 20;
 const initialPosition = {
   x: GAME_WIDTH / 2 - 1,
   y: 0,
@@ -28,19 +25,20 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
+function createNextPiecesQueue() {
+  return shuffle(Object.keys(tetrominoes) as Tetromino[]);
+}
+
 function createNewPiece(state: State): {
   piece: Piece;
   nextPiecesQueue: Tetromino[];
 } {
   const nextPiecesQueue = [...state.nextPiecesQueue];
-  if (nextPiecesQueue.length == 0) {
-    nextPiecesQueue.push(...shuffle(Object.keys(tetrominoes) as Tetromino[]));
-  }
 
   const type = nextPiecesQueue.shift() as Tetromino;
 
   if (nextPiecesQueue.length == 0) {
-    nextPiecesQueue.push(...shuffle(Object.keys(tetrominoes) as Tetromino[]));
+    nextPiecesQueue.push(...createNextPiecesQueue());
   }
 
   return {
@@ -93,9 +91,7 @@ function holdPiece(state: State): State {
     return state;
   }
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
   const newBoard = unpaintPieces(board, [piece]);
 
@@ -228,9 +224,7 @@ function canPlace(
 
 function applyPieceToBoard(state: State): State {
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
   const newBoard = paintPieces(board, [piece]);
 
@@ -260,9 +254,6 @@ function applyPieceToBoard(state: State): State {
 
 function moveDown(state: State): State {
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
 
   const board = state.board.map((row) => [...row]);
 
@@ -287,9 +278,7 @@ function moveDown(state: State): State {
 
 function moveLeft(state: State): State {
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
 
   const newBoard = unpaintPieces(board, [piece]);
@@ -311,9 +300,7 @@ function moveLeft(state: State): State {
 
 function rotate(state: State): State {
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
 
   const newBoard = unpaintPieces(board, [piece]);
@@ -335,9 +322,7 @@ function rotate(state: State): State {
 function moveRight(state: State): State {
   // console.log("right");
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
 
   const newBoard = unpaintPieces(board, [piece]);
@@ -360,9 +345,7 @@ function moveRight(state: State): State {
 
 function hardDrop(state: State): State {
   const piece = state.currentPiece;
-  if (!piece) {
-    return state;
-  }
+
   const board = state.board.map((row) => [...row]);
 
   const newBoard = unpaintPieces(board, [piece]);
@@ -435,8 +418,28 @@ function clearFullLines(board: string[][]) {
   return { board: newBoard, score };
 }
 
+export function init(): State {
+  const nextPiecesQueue = createNextPiecesQueue();
+  const currentPieceType = nextPiecesQueue.shift() as Tetromino;
+  return {
+    status: GameStatus.INITIAL,
+    board: Array.from({ length: GAME_HEIGHT }, () =>
+      Array.from({ length: GAME_WIDTH }, () => "")
+    ),
+    currentPiece: {
+      type: currentPieceType,
+      position: initialPosition,
+      rotation: 0,
+    },
+    score: 0,
+    nextPiecesQueue,
+    holdPiece: null,
+    canHold: true,
+  };
+}
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, init());
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>
