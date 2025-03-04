@@ -8,6 +8,7 @@ export type State = {
   nextPiecesQueue: Tetromino[];
   holdPiece: null | Tetromino;
   canHold: boolean;
+  fullLines: number[];
 };
 
 export enum GameStatus {
@@ -35,9 +36,11 @@ export type Action =
   | { type: ActionType.MOVE_RIGHT }
   | { type: ActionType.HARD_DROP }
   | { type: ActionType.ROTATE }
-  | { type: ActionType.HOLD_PIECE };
+  | { type: ActionType.HOLD_PIECE }
+  | { type: ActionType.CLEAR_FULL_LINES };
 
 export enum ActionType {
+  CLEAR_FULL_LINES = "CLEAR_FULL_LINES",
   PAUSE_GAME = "PAUSE_GAME",
   RESUME_GAME = "RESUME_GAME",
   RESTART_GAME = "RESTART_GAME",

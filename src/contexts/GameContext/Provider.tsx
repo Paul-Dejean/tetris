@@ -78,13 +78,16 @@ function reducer(state: State, action: Action) {
     case ActionType.HOLD_PIECE:
       return holdPiece(state);
 
+    case ActionType.CLEAR_FULL_LINES:
+      return clearFullLines(state);
+
     default:
       return state;
   }
 }
 
 function holdPiece(state: State): State {
-  if (!state.canHold) {
+  if (!state.canHold || state.fullLines.length) {
     return state;
   }
   const piece = state.currentPiece;
@@ -197,8 +200,16 @@ function applyPieceToBoard(state: State): State {
   const piece = state.currentPiece;
   const board = state.board.map((row) => [...row]);
   paintPiece(board, piece);
-  const nbLinesCleared = clearFullLines(board);
-  const score = calculateScore(nbLinesCleared);
+  // const nbLinesCleared = clearFullLines(board);
+  // const score = calculateScore(nbLinesCleared);
+  const fullLines = getFullLines(board);
+  if (fullLines.length) {
+    return {
+      ...state,
+      board,
+      fullLines,
+    };
+  }
 
   const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
 
@@ -206,24 +217,30 @@ function applyPieceToBoard(state: State): State {
     console.log();
     return {
       ...state,
-      status: GameStatus.GAME_OVER,
+      // status: GameStatus.GAME_OVER,
     };
   }
 
   paintPiece(board, newPiece);
+
   const newState = {
     ...state,
     board,
     currentPiece: newPiece,
-    score: state.score + score,
+
     nextPiecesQueue,
     canHold: true,
+    fullLines,
   };
 
   return newState;
 }
 
 function moveDown(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
+  // console.log({ fullLines: state.fullLines });
   const piece = state.currentPiece;
 
   const board = state.board.map((row) => [...row]);
@@ -253,6 +270,9 @@ function moveDown(state: State): State {
 }
 
 function moveLeft(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
   const piece = state.currentPiece;
 
   const board = state.board.map((row) => [...row]);
@@ -280,6 +300,9 @@ function moveLeft(state: State): State {
 }
 
 function rotate(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
   const piece = state.currentPiece;
 
   const board = state.board.map((row) => [...row]);
@@ -304,6 +327,9 @@ function rotate(state: State): State {
 }
 
 function moveRight(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
   // console.log("right");
   const piece = state.currentPiece;
 
@@ -334,6 +360,9 @@ function moveRight(state: State): State {
 }
 
 function hardDrop(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
   const piece = state.currentPiece;
 
   const board = state.board.map((row) => [...row]);
@@ -357,15 +386,21 @@ function hardDrop(state: State): State {
   }
   paintPiece(board, newPiece);
 
-  const nbLinesCleared = clearFullLines(board);
-  const score = calculateScore(nbLinesCleared);
+  const fullLines = getFullLines(board);
+  if (fullLines.length) {
+    return {
+      ...state,
+      board,
+      fullLines,
+    };
+  }
 
   const { piece: createPiece, nextPiecesQueue } = createNewPiece(state);
   // console.log({ bag });
   if (!canPlace(board, createPiece, createPiece.position)) {
     return {
       ...state,
-      status: GameStatus.GAME_OVER,
+      // status: GameStatus.GAME_OVER,
       nextPiecesQueue,
     };
   }
@@ -376,8 +411,8 @@ function hardDrop(state: State): State {
     ...state,
     board,
     currentPiece: createPiece,
-    score: state.score + score,
     nextPiecesQueue,
+    fullLines,
     canHold: true,
   };
 }
@@ -407,7 +442,19 @@ function eraseGhostPiece(board: string[][]) {
   }
 }
 
-function clearFullLines(board: string[][]) {
+function getFullLines(board: string[][]) {
+  const fullLines = [];
+  for (let y = 0; y < board.length; y++) {
+    if (board[y].every((cell) => cell)) {
+      fullLines.push(y);
+    }
+  }
+  return fullLines;
+}
+
+function clearFullLines(state: State): State {
+  const board = state.board.map((row) => [...row]);
+  console.log("before", { board });
   let nbLinesCleared = 0;
   for (let y = 0; y < board.length; y++) {
     if (board[y].every((cell) => cell)) {
@@ -417,7 +464,18 @@ function clearFullLines(board: string[][]) {
     }
   }
 
-  return nbLinesCleared;
+  const { piece, nextPiecesQueue } = createNewPiece(state);
+  paintPiece(board, piece);
+  console.log({ board });
+
+  return {
+    ...state,
+    board,
+    score: state.score + calculateScore(nbLinesCleared),
+    currentPiece: piece,
+    nextPiecesQueue,
+    fullLines: [],
+  };
 }
 
 export function init(): State {
@@ -434,6 +492,7 @@ export function init(): State {
       rotation: 0,
       isGhost: false,
     },
+    fullLines: [],
     score: 0,
     nextPiecesQueue,
     holdPiece: null,
