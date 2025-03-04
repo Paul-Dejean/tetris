@@ -11,7 +11,9 @@ export const initialState: State = {
   ),
   currentPiece: null,
   score: 0,
-  bag: [],
+  nextPiecesQueue: [],
+  holdPiece: null,
+  canHold: true,
 };
 
 export const GameContext = createContext({

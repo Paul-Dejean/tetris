@@ -5,6 +5,7 @@ const KEYBOARD_CONTROL_KEYS = {
   DOWN: "ArrowDown",
   UP: "ArrowUp",
   SPACE: " ",
+  SHIFT: "Shift",
 };
 
 type KeyCallbacks = {
@@ -13,6 +14,7 @@ type KeyCallbacks = {
   onDown?: () => void;
   onUp?: () => void;
   onSpace?: () => void;
+  onShift?: () => void;
 };
 
 export function useKeyboardControls(callbacks: KeyCallbacks) {
@@ -32,6 +34,9 @@ export function useKeyboardControls(callbacks: KeyCallbacks) {
         break;
       case KEYBOARD_CONTROL_KEYS.SPACE:
         callbacks.onSpace?.();
+        break;
+      case KEYBOARD_CONTROL_KEYS.SHIFT:
+        callbacks.onShift?.();
         break;
       default:
         break;

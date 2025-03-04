@@ -28,14 +28,20 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-function createNewPiece(state: State): { piece: Piece; bag: Tetromino[] } {
-  const bag = [...state.bag];
-
-  if (bag.length === 0) {
-    bag.push(...shuffle(Object.keys(tetrominoes) as Tetromino[]));
+function createNewPiece(state: State): {
+  piece: Piece;
+  nextPiecesQueue: Tetromino[];
+} {
+  const nextPiecesQueue = [...state.nextPiecesQueue];
+  if (nextPiecesQueue.length == 0) {
+    nextPiecesQueue.push(...shuffle(Object.keys(tetrominoes) as Tetromino[]));
   }
 
-  const type = bag.pop() as Tetromino;
+  const type = nextPiecesQueue.shift() as Tetromino;
+
+  if (nextPiecesQueue.length == 0) {
+    nextPiecesQueue.push(...shuffle(Object.keys(tetrominoes) as Tetromino[]));
+  }
 
   return {
     piece: {
@@ -43,7 +49,7 @@ function createNewPiece(state: State): { piece: Piece; bag: Tetromino[] } {
       position: initialPosition,
       rotation: 0,
     },
-    bag,
+    nextPiecesQueue,
   };
 }
 
@@ -74,14 +80,53 @@ function reducer(state: State, action: Action) {
     case ActionType.HARD_DROP:
       return hardDrop(state);
 
+    case ActionType.HOLD_PIECE:
+      return holdPiece(state);
+
     default:
       return state;
   }
 }
 
+function holdPiece(state: State): State {
+  if (!state.canHold) {
+    return state;
+  }
+  const piece = state.currentPiece;
+  if (!piece) {
+    return state;
+  }
+  const board = state.board.map((row) => [...row]);
+  const newBoard = unpaintPieces(board, [piece]);
+
+  if (!state.holdPiece) {
+    const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
+    return {
+      ...state,
+      board: paintPieces(newBoard, [newPiece]),
+      currentPiece: newPiece,
+      holdPiece: piece.type,
+      canHold: false,
+      nextPiecesQueue,
+    };
+  }
+  const newPiece = {
+    type: state.holdPiece,
+    position: initialPosition,
+    rotation: 0 as Rotation,
+  };
+  return {
+    ...state,
+    board: paintPieces(newBoard, [newPiece]),
+    currentPiece: newPiece,
+    holdPiece: piece.type,
+    canHold: false,
+  };
+}
+
 function startGame(state: State): State {
   // console.log("startGame");
-  const { piece: newPiece, bag } = createNewPiece(state);
+  const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
   const board = state.board.map((row) => [...row]);
   const newBoard = paintPieces(board, [newPiece]);
   return {
@@ -89,7 +134,7 @@ function startGame(state: State): State {
     board: newBoard,
     status: GameStatus.PLAYING,
     currentPiece: newPiece,
-    bag,
+    nextPiecesQueue,
   };
 }
 
@@ -182,7 +227,6 @@ function canPlace(
 }
 
 function applyPieceToBoard(state: State): State {
-  console.log("before", state.bag);
   const piece = state.currentPiece;
   if (!piece) {
     return state;
@@ -192,9 +236,10 @@ function applyPieceToBoard(state: State): State {
 
   const { board: finalBoard, score } = clearFullLines(newBoard);
 
-  const { piece: newPiece, bag } = createNewPiece(state);
+  const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
 
-  if (!canPlace(finalBoard, newPiece, piece.position)) {
+  if (!canPlace(finalBoard, newPiece, newPiece.position)) {
+    console.log();
     return {
       ...state,
       status: GameStatus.GAME_OVER,
@@ -206,10 +251,9 @@ function applyPieceToBoard(state: State): State {
     board: paintPiece(finalBoard, newPiece),
     currentPiece: newPiece,
     score: state.score + score,
-    bag,
+    nextPiecesQueue,
+    canHold: true,
   };
-
-  console.log("after", newState.bag);
 
   return newState;
 }
@@ -340,13 +384,13 @@ function hardDrop(state: State): State {
 
   const { board: finalBoard, score } = clearFullLines(result);
 
-  const { piece: createPiece, bag } = createNewPiece(state);
+  const { piece: createPiece, nextPiecesQueue } = createNewPiece(state);
   // console.log({ bag });
   if (!canPlace(finalBoard, createPiece, createPiece.position)) {
     return {
       ...state,
       status: GameStatus.GAME_OVER,
-      bag,
+      nextPiecesQueue,
     };
   }
 
@@ -355,7 +399,8 @@ function hardDrop(state: State): State {
     board: paintPieces(finalBoard, [createPiece]),
     currentPiece: createPiece,
     score: state.score + score,
-    bag,
+    nextPiecesQueue,
+    canHold: true,
   };
 }
 

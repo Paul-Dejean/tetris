@@ -4,6 +4,8 @@ import { ActionType, GameStatus } from "../contexts/GameContext/types";
 import { Tetromino, tetrominoes } from "../contexts/GameContext/tetrominoes";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
 import tetrisTheme from "../assets/tetris-theme.mp3";
+import { PieceQueue } from "./PieceQueue";
+import { HoldPiece } from "./HoldPiece";
 
 const FALLING_SPEED = 1000;
 export function TetrisBoard() {
@@ -23,6 +25,7 @@ export function TetrisBoard() {
       dispatch({ type: ActionType.HARD_DROP });
     },
     onUp: () => dispatch({ type: ActionType.ROTATE }),
+    onShift: () => dispatch({ type: ActionType.HOLD_PIECE }),
   });
   const gameLoop = (time: number) => {
     if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
@@ -62,39 +65,48 @@ export function TetrisBoard() {
   }, []);
 
   return (
-    <div className="h-full">
-      <div className="absolute right-2 top-2 text-white">
-        Score: {state.score}
-      </div>
-      <div className="flex p-8 justify-center">
-        <div className="border border-primary border-solid">
-          {board.map((row, rowIndex) => (
-            <div className="flex" key={rowIndex}>
-              {row.map((cell, cellIndex) => {
-                // console.log({ cell });
-                const style = cell
-                  ? {
-                      backgroundColor: tetrominoes[cell as Tetromino].color,
-                      borderWidth: "5px",
-                      borderStyle: "outset",
-                      borderRadius: "2px",
-                      borderColor: tetrominoes[cell as Tetromino].color,
-                    }
-                  : {};
-
-                return (
-                  <div
-                    key={cellIndex}
-                    className="border w-8 h-8"
-                    style={style}
-                  ></div>
-                );
-              })}
-            </div>
-          ))}
+    <>
+      <audio src={tetrisTheme} autoPlay loop></audio>
+      <div className="h-full">
+        <div className="absolute right-2 top-2 text-white">
+          Score: {state.score}
         </div>
-        <audio src={tetrisTheme} autoPlay loop></audio>
+
+        <div className="flex p-8 justify-center gap-x-4">
+          <div className="self-align-start">
+            <HoldPiece />
+          </div>
+          <div className="border-b border-l border-r border-primary border-solid">
+            {board.map((row, rowIndex) => (
+              <div className="flex" key={rowIndex}>
+                {row.map((cell, cellIndex) => {
+                  // console.log({ cell });
+                  const style = cell
+                    ? {
+                        backgroundColor: tetrominoes[cell as Tetromino].color,
+                        borderWidth: "5px",
+                        borderStyle: "outset",
+                        borderRadius: "2px",
+                        borderColor: tetrominoes[cell as Tetromino].color,
+                      }
+                    : {};
+
+                  return (
+                    <div
+                      key={cellIndex}
+                      className="border border-gray-700 w-8 h-8"
+                      style={style}
+                    ></div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <div className="self-align-start">
+            <PieceQueue />
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

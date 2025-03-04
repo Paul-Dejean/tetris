@@ -5,7 +5,9 @@ export type State = {
   board: string[][];
   currentPiece: null | Piece;
   score: number;
-  bag: Tetromino[];
+  nextPiecesQueue: Tetromino[];
+  holdPiece: null | Tetromino;
+  canHold: boolean;
 };
 
 export enum GameStatus {
@@ -32,7 +34,8 @@ export type Action =
   | { type: ActionType.MOVE_LEFT }
   | { type: ActionType.MOVE_RIGHT }
   | { type: ActionType.HARD_DROP }
-  | { type: ActionType.ROTATE };
+  | { type: ActionType.ROTATE }
+  | { type: ActionType.HOLD_PIECE };
 
 export enum ActionType {
   START_GAME = "START_GAME",
@@ -44,4 +47,5 @@ export enum ActionType {
   MOVE_RIGHT = "MOVE_RIGHT",
   HARD_DROP = "HARD_DROP",
   ROTATE = "ROTATE",
+  HOLD_PIECE = "HOLD_PIECE",
 }
