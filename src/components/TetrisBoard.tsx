@@ -7,6 +7,7 @@ import tetrisTheme from "../assets/tetris-theme.mp3";
 import { PieceQueue } from "./PieceQueue";
 import { HoldPiece } from "./HoldPiece";
 import { getLevel, getLevelSpeed } from "../contexts/GameContext/Provider";
+import { useTouchControls } from "../hooks/useTouchControls";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -68,6 +69,23 @@ export function TetrisBoard() {
     onUp: () => dispatch({ type: ActionType.ROTATE }),
     onShift: () => dispatch({ type: ActionType.HOLD_PIECE }),
   });
+
+  const { handleTouchStart, handleTouchMove, handleTouchEnd } =
+    useTouchControls({
+      onTap: () => dispatch({ type: ActionType.ROTATE }),
+      onHorizontalDrag: (diff) => {
+        if (diff > 10) {
+          dispatch({ type: ActionType.MOVE_RIGHT });
+        } else if (diff < -10) {
+          dispatch({ type: ActionType.MOVE_LEFT });
+        }
+      },
+      onVerticalDrag: (diff) => {
+        if (diff > 10) {
+          dispatch({ type: ActionType.MOVE_DOWN });
+        }
+      },
+    });
 
   const level = getLevel(state.nbLinesCleared);
   const speed = getLevelSpeed(level);
@@ -141,7 +159,7 @@ export function TetrisBoard() {
   return (
     <>
       <audio src={tetrisTheme} autoPlay loop></audio>
-      <div className="h-full">
+      <div className="h-full overflow-hidden">
         <div className="absolute right-2 top-2 text-white">
           Score: {state.score}
         </div>
@@ -151,7 +169,12 @@ export function TetrisBoard() {
             <HoldPiece />
           </div>
           <div>
-            <div className="border-b border-l border-r border-primary border-solid">
+            <div
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="border-b border-l border-r border-primary border-solid"
+            >
               {board.map((row, rowIndex) => (
                 <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
                   {row.map((cell, cellIndex) => {
