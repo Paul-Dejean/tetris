@@ -9,6 +9,7 @@ export type State = {
   holdPiece: null | Tetromino;
   canHold: boolean;
   fullLines: number[];
+  nbLinesCleared: number;
 };
 
 export enum GameStatus {

@@ -6,8 +6,7 @@ import { useKeyboardControls } from "../hooks/useKeyboardControls";
 import tetrisTheme from "../assets/tetris-theme.mp3";
 import { PieceQueue } from "./PieceQueue";
 import { HoldPiece } from "./HoldPiece";
-
-const FALLING_SPEED = 1000;
+import { getLevel, getLevelSpeed } from "../contexts/GameContext/Provider";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -71,16 +70,16 @@ export function TetrisBoard() {
     onShift: () => dispatch({ type: ActionType.HOLD_PIECE }),
   });
 
+  const level = getLevel(state.nbLinesCleared);
+  const speed = getLevelSpeed(level);
+
   const gameLoop = useCallback(
     (time: number) => {
       if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
         const deltaTime = time - previousTimeRef.current;
         timeAccumulatorRef.current += deltaTime;
 
-        if (
-          timeAccumulatorRef.current >= FALLING_SPEED &&
-          !state.fullLines.length
-        ) {
+        if (timeAccumulatorRef.current >= speed && !state.fullLines.length) {
           dispatch({ type: ActionType.TICK });
           timeAccumulatorRef.current = 0;
         }
@@ -113,7 +112,7 @@ export function TetrisBoard() {
       previousTimeRef.current = time;
       requestRef.current = requestAnimationFrame(gameLoop);
     },
-    [dispatch, state.fullLines, state.status, isClearingLines]
+    [dispatch, state.fullLines, state.status, isClearingLines, speed]
   );
 
   useEffect(() => {
@@ -152,23 +151,28 @@ export function TetrisBoard() {
           <div className="self-align-start">
             <HoldPiece />
           </div>
-          <div className="border-b border-l border-r border-primary border-solid">
-            {board.map((row, rowIndex) => (
-              <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
-                {row.map((cell, cellIndex) => {
-                  // console.log({ cell });
-                  const style = createCellStyle(cell);
+          <div>
+            <div className="border-b border-l border-r border-primary border-solid">
+              {board.map((row, rowIndex) => (
+                <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
+                  {row.map((cell, cellIndex) => {
+                    // console.log({ cell });
+                    const style = createCellStyle(cell);
 
-                  return (
-                    <div
-                      key={cellIndex}
-                      className=" w-8 h-8"
-                      style={style}
-                    ></div>
-                  );
-                })}
-              </div>
-            ))}
+                    return (
+                      <div
+                        key={cellIndex}
+                        className=" w-8 h-8"
+                        style={style}
+                      ></div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            <div className="text-white text-center">
+              Level: {level} Speed: {speed}
+            </div>
           </div>
           <div className="self-align-start">
             <PieceQueue />
