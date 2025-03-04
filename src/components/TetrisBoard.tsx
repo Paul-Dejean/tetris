@@ -43,9 +43,8 @@ function fadeOut(element: HTMLElement, duration = 300, callback?: () => void) {
     if (progress < duration) {
       requestAnimationFrame(step);
     } else {
-      element.style.opacity = "1";
-
       if (callback) callback();
+      setTimeout(() => (element.style.opacity = "1"), 50);
     }
   };
   requestAnimationFrame(step);
@@ -55,7 +54,7 @@ export function TetrisBoard() {
   const { state, dispatch } = useGame();
   const requestRef = useRef(0);
   const previousTimeRef = useRef(0);
-  const board = state.board;
+  const board = state.renderedBoard;
   const timeAccumulatorRef = useRef(0);
   const [isClearingLines, setIsClearingLines] = useState(false);
 

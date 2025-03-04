@@ -86,47 +86,6 @@ function reducer(state: State, action: Action) {
   }
 }
 
-function holdPiece(state: State): State {
-  if (!state.canHold || state.fullLines.length) {
-    return state;
-  }
-  const piece = state.currentPiece;
-  const board = state.board.map((row) => [...row]);
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-
-  if (!state.holdPiece) {
-    const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
-    const newGhostPiece = createGhostPiece(board, newPiece);
-    paintPiece(board, newGhostPiece);
-    paintPiece(board, newPiece);
-    return {
-      ...state,
-      board,
-      currentPiece: newPiece,
-      holdPiece: piece.type,
-      canHold: false,
-      nextPiecesQueue,
-    };
-  }
-  const newPiece = {
-    type: state.holdPiece,
-    position: initialPosition,
-    rotation: 0 as Rotation,
-    isGhost: false,
-  };
-  const newGhostPiece = createGhostPiece(board, newPiece);
-  paintPiece(board, newGhostPiece);
-  paintPiece(board, newPiece);
-  return {
-    ...state,
-    board,
-    currentPiece: newPiece,
-    holdPiece: piece.type,
-    canHold: false,
-  };
-}
-
 function pauseGame(state: State): State {
   if (state.status !== GameStatus.PLAYING) {
     return state;
@@ -147,26 +106,21 @@ function resumeGame(state: State): State {
   };
 }
 
-function canPlace(
-  board: string[][],
-  piece: Piece,
-  newPosition: { x: number; y: number }
-) {
-  //   console.log({ board, piece, newPosition });
+function canPlace(board: string[][], piece: Piece) {
   const block = tetrominoes[piece.type].shapes[piece.rotation];
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
         if (
-          x + newPosition.x < 0 ||
-          x + newPosition.x >= GAME_WIDTH ||
-          y + newPosition.y >= GAME_HEIGHT
+          x + piece.position.x < 0 ||
+          x + piece.position.x >= GAME_WIDTH ||
+          y + piece.position.y >= GAME_HEIGHT
         ) {
           return false;
         }
         if (
-          board[y + newPosition.y][x + newPosition.x] &&
-          !board[y + newPosition.y][x + newPosition.x].startsWith("G")
+          board[y + piece.position.y][x + piece.position.x] &&
+          !board[y + piece.position.y][x + piece.position.x].startsWith("G")
         ) {
           return false;
         }
@@ -177,31 +131,52 @@ function canPlace(
 }
 
 function createGhostPiece(board: string[][], piece: Piece): Piece {
-  unpaintPiece(board, piece);
   const ghostPiece = {
     ...piece,
     position: { ...piece.position },
     isGhost: true,
   };
-  while (
-    canPlace(board, ghostPiece, {
-      x: ghostPiece.position.x,
-      y: ghostPiece.position.y,
-    })
-  ) {
+  while (canPlace(board, ghostPiece)) {
     ghostPiece.position.y += 1;
   }
-  ghostPiece.position.y -= 1;
-  paintPiece(board, piece);
+  ghostPiece.position.y = Math.max(0, ghostPiece.position.y - 1);
   return ghostPiece;
 }
 
-function applyPieceToBoard(state: State): State {
+function moveDown(state: State): State {
+  if (state.fullLines.length) {
+    return state;
+  }
+
   const piece = state.currentPiece;
   const board = state.board.map((row) => [...row]);
-  paintPiece(board, piece);
-  // const nbLinesCleared = clearFullLines(board);
-  // const score = calculateScore(nbLinesCleared);
+  const nextPiece = {
+    ...piece,
+    position: { ...piece.position, y: piece.position.y + 1 },
+  };
+
+  const canMove = canPlace(board, nextPiece);
+
+  if (canMove) {
+    const newState = {
+      ...state,
+      board,
+      currentPiece: nextPiece,
+    };
+    const renderedBoard = renderBoard(newState);
+    return {
+      ...newState,
+      renderedBoard,
+    };
+  }
+
+  if (!canPlace(board, piece)) {
+    return {
+      ...state,
+      status: GameStatus.GAME_OVER,
+    };
+  }
+  addPieceToBoard(board, piece);
   const fullLines = getFullLines(board);
   if (fullLines.length) {
     return {
@@ -213,60 +188,23 @@ function applyPieceToBoard(state: State): State {
 
   const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
 
-  if (!canPlace(board, newPiece, newPiece.position)) {
-    console.log();
-    return {
-      ...state,
-      // status: GameStatus.GAME_OVER,
-    };
-  }
-
-  paintPiece(board, newPiece);
+  const isGameOver = !canPlace(board, newPiece);
 
   const newState = {
     ...state,
+    status: isGameOver ? GameStatus.GAME_OVER : GameStatus.PLAYING,
     board,
     currentPiece: newPiece,
-
     nextPiecesQueue,
     canHold: true,
     fullLines,
   };
+  const renderedBoard = renderBoard(newState);
 
-  return newState;
-}
-
-function moveDown(state: State): State {
-  if (state.fullLines.length) {
-    return state;
-  }
-  // console.log({ fullLines: state.fullLines });
-  const piece = state.currentPiece;
-
-  const board = state.board.map((row) => [...row]);
-
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-  const newPosition = { ...piece.position, y: piece.position.y + 1 };
-
-  const shouldMove = canPlace(board, piece, newPosition);
-
-  if (shouldMove) {
-    const newGhostPiece = createGhostPiece(board, {
-      ...piece,
-      position: newPosition,
-    });
-    paintPiece(board, newGhostPiece);
-    paintPiece(board, { ...piece, position: newPosition });
-
-    return {
-      ...state,
-      board,
-      currentPiece: { ...piece, position: newPosition },
-    };
-  }
-
-  return applyPieceToBoard(state);
+  return {
+    ...newState,
+    renderedBoard,
+  };
 }
 
 function moveLeft(state: State): State {
@@ -274,28 +212,25 @@ function moveLeft(state: State): State {
     return state;
   }
   const piece = state.currentPiece;
-
   const board = state.board.map((row) => [...row]);
+  const newPiece = {
+    ...piece,
+    position: { ...piece.position, x: piece.position.x - 1 },
+  };
 
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-  const newPosition = { ...piece.position, x: piece.position.x - 1 };
-
-  const shouldMove = canPlace(board, piece, newPosition);
-
-  if (!shouldMove) {
+  if (!canPlace(board, newPiece)) {
     return state;
   }
-  const newGhostPiece = createGhostPiece(board, {
-    ...piece,
-    position: newPosition,
-  });
-  paintPiece(board, newGhostPiece);
-  paintPiece(board, { ...piece, position: newPosition });
-  return {
+
+  const newState = {
     ...state,
     board,
-    currentPiece: { ...piece, position: newPosition },
+    currentPiece: newPiece,
+  };
+  const renderedBoard = renderBoard(newState);
+  return {
+    ...newState,
+    renderedBoard,
   };
 }
 
@@ -307,22 +242,24 @@ function rotate(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-  const newRotation = ((piece.rotation + 1) % 4) as Rotation;
-  const newPiece = { ...piece, rotation: newRotation };
-  const shouldRotate = canPlace(board, newPiece, piece.position);
-  if (!shouldRotate) {
+  const newPiece = {
+    ...piece,
+    rotation: ((piece.rotation + 1) % 4) as Rotation,
+  };
+
+  if (!canPlace(board, newPiece)) {
     return state;
   }
-
-  const newGhostPiece = createGhostPiece(board, newPiece);
-  paintPiece(board, newGhostPiece);
-  paintPiece(board, newPiece);
-  return {
+  const newState = {
     ...state,
     board,
     currentPiece: newPiece,
+  };
+  const renderedBoard = renderBoard(newState);
+
+  return {
+    ...newState,
+    renderedBoard,
   };
 }
 
@@ -330,32 +267,27 @@ function moveRight(state: State): State {
   if (state.fullLines.length) {
     return state;
   }
-  // console.log("right");
+
   const piece = state.currentPiece;
-
   const board = state.board.map((row) => [...row]);
+  const newPiece = {
+    ...piece,
+    position: { ...piece.position, x: piece.position.x + 1 },
+  };
 
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-  const newPosition = { ...piece.position, x: piece.position.x + 1 };
-
-  const shouldMove = canPlace(board, piece, newPosition);
-
-  if (!shouldMove) {
+  if (!canPlace(board, newPiece)) {
     return state;
   }
-  const newGhostPiece = createGhostPiece(board, {
-    ...piece,
-    position: newPosition,
-  });
-  paintPiece(board, newGhostPiece);
 
-  paintPiece(board, { ...piece, position: newPosition });
-
-  return {
+  const newState = {
     ...state,
     board,
-    currentPiece: { ...piece, position: newPosition },
+    currentPiece: newPiece,
+  };
+  const renderedBoard = renderBoard(newState);
+  return {
+    ...newState,
+    renderedBoard,
   };
 }
 
@@ -364,27 +296,15 @@ function hardDrop(state: State): State {
     return state;
   }
   const piece = state.currentPiece;
-
   const board = state.board.map((row) => [...row]);
-
-  unpaintPiece(board, piece);
-  eraseGhostPiece(board);
-
-  const newPiece = {
-    position: { ...piece.position },
-    rotation: piece.rotation,
-    type: piece.type,
-    isGhost: false,
-  };
-  while (
-    canPlace(board, newPiece, {
-      x: newPiece.position.x,
-      y: newPiece.position.y + 1,
-    })
-  ) {
-    newPiece.position.y += 1;
+  const newPiece = { ...createGhostPiece(board, piece), isGhost: false };
+  if (!canPlace(board, newPiece)) {
+    return {
+      ...state,
+      status: GameStatus.GAME_OVER,
+    };
   }
-  paintPiece(board, newPiece);
+  addPieceToBoard(board, newPiece);
 
   const fullLines = getFullLines(board);
   if (fullLines.length) {
@@ -396,24 +316,138 @@ function hardDrop(state: State): State {
   }
 
   const { piece: createPiece, nextPiecesQueue } = createNewPiece(state);
-  // console.log({ bag });
-  if (!canPlace(board, createPiece, createPiece.position)) {
-    return {
-      ...state,
-      // status: GameStatus.GAME_OVER,
-      nextPiecesQueue,
-    };
-  }
-
-  paintPiece(board, createPiece);
-
-  return {
+  const isGameOver = !canPlace(board, createPiece);
+  const newState = {
     ...state,
+    status: isGameOver ? GameStatus.GAME_OVER : GameStatus.PLAYING,
     board,
     currentPiece: createPiece,
     nextPiecesQueue,
     fullLines,
     canHold: true,
+  };
+  const renderedBoard = renderBoard(newState);
+  return {
+    ...newState,
+    renderedBoard,
+  };
+}
+
+function renderBoard(state: State) {
+  const board = state.board.map((row) => [...row]);
+  const piece = state.currentPiece;
+  const ghostPiece = createGhostPiece(board, piece);
+  addPieceToBoard(board, ghostPiece);
+  addPieceToBoard(board, piece);
+  return board;
+}
+
+function holdPiece(state: State): State {
+  if (!state.canHold || state.fullLines.length) {
+    return state;
+  }
+  const piece = state.currentPiece;
+  const board = state.board.map((row) => [...row]);
+
+  if (!state.holdPiece) {
+    const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
+    const newState = {
+      ...state,
+      board,
+      currentPiece: newPiece,
+      holdPiece: piece.type,
+      canHold: false,
+      nextPiecesQueue,
+    };
+    const renderedBoard = renderBoard(newState);
+    return {
+      ...newState,
+      renderedBoard,
+    };
+  }
+  const newPiece = {
+    type: state.holdPiece,
+    position: initialPosition,
+    rotation: 0 as Rotation,
+    isGhost: false,
+  };
+
+  const newState = {
+    ...state,
+    board,
+    currentPiece: newPiece,
+    holdPiece: piece.type,
+    canHold: false,
+  };
+  const renderedBoard = renderBoard(newState);
+  return {
+    ...newState,
+    renderedBoard,
+  };
+}
+
+function getFullLines(board: string[][]) {
+  const fullLines = [];
+  for (let y = 0; y < board.length; y++) {
+    if (board[y].every((cell) => cell)) {
+      fullLines.push(y);
+    }
+  }
+  return fullLines;
+}
+
+function clearFullLines(state: State): State {
+  const board = state.board.map((row) => [...row]);
+  let nbLinesCleared = 0;
+  for (let y = 0; y < board.length; y++) {
+    if (board[y].every((cell) => cell)) {
+      board.splice(y, 1);
+      board.unshift(Array.from({ length: GAME_WIDTH }, () => ""));
+      nbLinesCleared += 1;
+    }
+  }
+
+  const { piece, nextPiecesQueue } = createNewPiece(state);
+
+  const newState = {
+    ...state,
+    board,
+    currentPiece: piece,
+    nextPiecesQueue,
+    fullLines: [],
+    score: state.score + calculateScore(nbLinesCleared),
+    nbLinesCleared: state.nbLinesCleared + nbLinesCleared,
+  };
+  const renderedBoard = renderBoard(newState);
+  return {
+    ...newState,
+    renderedBoard,
+  };
+}
+
+export function init(): State {
+  const nextPiecesQueue = createNextPiecesQueue();
+  const currentPieceType = nextPiecesQueue.shift() as Tetromino;
+  return {
+    status: GameStatus.PLAYING,
+    board: Array.from({ length: GAME_HEIGHT }, () =>
+      Array.from({ length: GAME_WIDTH }, () => "")
+    ),
+    renderedBoard: Array.from({ length: GAME_HEIGHT }, () =>
+      Array.from({ length: GAME_WIDTH }, () => "")
+    ),
+    currentPiece: {
+      type: currentPieceType,
+      position: initialPosition,
+      rotation: 0,
+      isGhost: false,
+    },
+    fullLines: [],
+    score: 0,
+    nextPiecesQueue,
+    holdPiece: null,
+    canHold: true,
+    nbLinesCleared: 0,
   };
 }
 
@@ -430,76 +464,6 @@ function calculateScore(nbLinesCleared: number) {
     default:
       return 0;
   }
-}
-
-function eraseGhostPiece(board: string[][]) {
-  for (let y = 0; y < board.length; y++) {
-    for (let x = 0; x < board[y].length; x++) {
-      if (board[y][x].startsWith("G")) {
-        board[y][x] = "";
-      }
-    }
-  }
-}
-
-function getFullLines(board: string[][]) {
-  const fullLines = [];
-  for (let y = 0; y < board.length; y++) {
-    if (board[y].every((cell) => cell)) {
-      fullLines.push(y);
-    }
-  }
-  return fullLines;
-}
-
-function clearFullLines(state: State): State {
-  const board = state.board.map((row) => [...row]);
-  console.log("before", { board });
-  let nbLinesCleared = 0;
-  for (let y = 0; y < board.length; y++) {
-    if (board[y].every((cell) => cell)) {
-      board.splice(y, 1);
-      board.unshift(Array.from({ length: GAME_WIDTH }, () => ""));
-      nbLinesCleared += 1;
-    }
-  }
-
-  const { piece, nextPiecesQueue } = createNewPiece(state);
-  paintPiece(board, piece);
-  console.log({ board });
-
-  return {
-    ...state,
-    board,
-    score: state.score + calculateScore(nbLinesCleared),
-    currentPiece: piece,
-    nextPiecesQueue,
-    fullLines: [],
-    nbLinesCleared: state.nbLinesCleared + nbLinesCleared,
-  };
-}
-
-export function init(): State {
-  const nextPiecesQueue = createNextPiecesQueue();
-  const currentPieceType = nextPiecesQueue.shift() as Tetromino;
-  return {
-    status: GameStatus.PLAYING,
-    board: Array.from({ length: GAME_HEIGHT }, () =>
-      Array.from({ length: GAME_WIDTH }, () => "")
-    ),
-    currentPiece: {
-      type: currentPieceType,
-      position: initialPosition,
-      rotation: 0,
-      isGhost: false,
-    },
-    fullLines: [],
-    score: 0,
-    nextPiecesQueue,
-    holdPiece: null,
-    canHold: true,
-    nbLinesCleared: 0,
-  };
 }
 
 export function getLevel(nbLinesCleared: number) {
@@ -549,24 +513,14 @@ export function getLevelSpeed(level: number) {
   }
 }
 
-function paintPiece(board: string[][], piece: Piece) {
+function addPieceToBoard(board: string[][], piece: Piece) {
   const block = tetrominoes[piece.type].shapes[piece.rotation];
   const type = piece.isGhost ? `G${piece.type}` : piece.type;
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
+        console.log([y + piece.position.y, x + piece.position.x]);
         board[y + piece.position.y][x + piece.position.x] = type;
-      }
-    }
-  }
-}
-
-function unpaintPiece(board: string[][], piece: Piece) {
-  const block = tetrominoes[piece.type].shapes[piece.rotation];
-  for (let y = 0; y < block.length; y++) {
-    for (let x = 0; x < block[y].length; x++) {
-      if (block[y][x]) {
-        board[y + piece.position.y][x + piece.position.x] = "";
       }
     }
   }

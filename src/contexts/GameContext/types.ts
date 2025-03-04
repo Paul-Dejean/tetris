@@ -3,6 +3,7 @@ import { Tetromino } from "./tetrominoes";
 export type State = {
   status: GameStatus;
   board: string[][];
+  renderedBoard: string[][];
   currentPiece: Piece;
   score: number;
   nextPiecesQueue: Tetromino[];
