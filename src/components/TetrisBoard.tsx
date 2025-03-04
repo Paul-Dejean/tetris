@@ -8,6 +8,30 @@ import { PieceQueue } from "./PieceQueue";
 import { HoldPiece } from "./HoldPiece";
 
 const FALLING_SPEED = 1000;
+
+function createCellStyle(cell: string) {
+  if (!cell) return {};
+
+  if (cell.startsWith("G")) {
+    const color = tetrominoes[cell[1] as Tetromino].color;
+
+    return {
+      backgroundColor: color,
+      borderWidth: "5px",
+      borderStyle: "outset",
+      borderRadius: "2px",
+      borderColor: color,
+      opacity: 0.3,
+    };
+  }
+  return {
+    backgroundColor: tetrominoes[cell as Tetromino].color,
+    borderWidth: "5px",
+    borderStyle: "outset",
+    borderRadius: "2px",
+    borderColor: tetrominoes[cell as Tetromino].color,
+  };
+}
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
   const requestRef = useRef(0);
@@ -82,20 +106,12 @@ export function TetrisBoard() {
               <div className="flex" key={rowIndex}>
                 {row.map((cell, cellIndex) => {
                   // console.log({ cell });
-                  const style = cell
-                    ? {
-                        backgroundColor: tetrominoes[cell as Tetromino].color,
-                        borderWidth: "5px",
-                        borderStyle: "outset",
-                        borderRadius: "2px",
-                        borderColor: tetrominoes[cell as Tetromino].color,
-                      }
-                    : {};
+                  const style = createCellStyle(cell);
 
                   return (
                     <div
                       key={cellIndex}
-                      className="border border-gray-700 w-8 h-8"
+                      className=" w-8 h-8"
                       style={style}
                     ></div>
                   );

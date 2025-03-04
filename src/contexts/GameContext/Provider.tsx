@@ -43,6 +43,7 @@ function createNewPiece(state: State): {
       type,
       position: initialPosition,
       rotation: 0,
+      isGhost: false,
     },
     nextPiecesQueue,
   };
@@ -88,11 +89,14 @@ function holdPiece(state: State): State {
   }
   const piece = state.currentPiece;
   const board = state.board.map((row) => [...row]);
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
 
   if (!state.holdPiece) {
     const { piece: newPiece, nextPiecesQueue } = createNewPiece(state);
-    paintPieces(board, [newPiece]);
+    const newGhostPiece = createGhostPiece(board, newPiece);
+    paintPiece(board, newGhostPiece);
+    paintPiece(board, newPiece);
     return {
       ...state,
       board,
@@ -106,8 +110,11 @@ function holdPiece(state: State): State {
     type: state.holdPiece,
     position: initialPosition,
     rotation: 0 as Rotation,
+    isGhost: false,
   };
-  paintPieces(board, [newPiece]);
+  const newGhostPiece = createGhostPiece(board, newPiece);
+  paintPiece(board, newGhostPiece);
+  paintPiece(board, newPiece);
   return {
     ...state,
     board,
@@ -137,40 +144,6 @@ function resumeGame(state: State): State {
   };
 }
 
-function paintPieces(board: string[][], pieces: Piece[]) {
-  for (const piece of pieces) {
-    paintPiece(board, piece);
-  }
-}
-
-function paintPiece(board: string[][], piece: Piece) {
-  const block = tetrominoes[piece.type].shapes[piece.rotation];
-  for (let y = 0; y < block.length; y++) {
-    for (let x = 0; x < block[y].length; x++) {
-      if (block[y][x]) {
-        board[y + piece.position.y][x + piece.position.x] = piece.type;
-      }
-    }
-  }
-}
-
-function unpaintPieces(board: string[][], pieces: Piece[]) {
-  for (const piece of pieces) {
-    unpaintPiece(board, piece);
-  }
-}
-
-function unpaintPiece(board: string[][], piece: Piece) {
-  const block = tetrominoes[piece.type].shapes[piece.rotation];
-  for (let y = 0; y < block.length; y++) {
-    for (let x = 0; x < block[y].length; x++) {
-      if (block[y][x]) {
-        board[y + piece.position.y][x + piece.position.x] = "";
-      }
-    }
-  }
-}
-
 function canPlace(
   board: string[][],
   piece: Piece,
@@ -188,7 +161,10 @@ function canPlace(
         ) {
           return false;
         }
-        if (board[y + newPosition.y][x + newPosition.x]) {
+        if (
+          board[y + newPosition.y][x + newPosition.x] &&
+          !board[y + newPosition.y][x + newPosition.x].startsWith("G")
+        ) {
           return false;
         }
       }
@@ -197,10 +173,30 @@ function canPlace(
   return true;
 }
 
+function createGhostPiece(board: string[][], piece: Piece): Piece {
+  unpaintPiece(board, piece);
+  const ghostPiece = {
+    ...piece,
+    position: { ...piece.position },
+    isGhost: true,
+  };
+  while (
+    canPlace(board, ghostPiece, {
+      x: ghostPiece.position.x,
+      y: ghostPiece.position.y,
+    })
+  ) {
+    ghostPiece.position.y += 1;
+  }
+  ghostPiece.position.y -= 1;
+  paintPiece(board, piece);
+  return ghostPiece;
+}
+
 function applyPieceToBoard(state: State): State {
   const piece = state.currentPiece;
   const board = state.board.map((row) => [...row]);
-  paintPieces(board, [piece]);
+  paintPiece(board, piece);
   const nbLinesCleared = clearFullLines(board);
   const score = calculateScore(nbLinesCleared);
 
@@ -214,7 +210,7 @@ function applyPieceToBoard(state: State): State {
     };
   }
 
-  paintPieces(board, [newPiece]);
+  paintPiece(board, newPiece);
   const newState = {
     ...state,
     board,
@@ -232,13 +228,19 @@ function moveDown(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
   const newPosition = { ...piece.position, y: piece.position.y + 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
 
   if (shouldMove) {
-    paintPieces(board, [{ ...piece, position: newPosition }]);
+    const newGhostPiece = createGhostPiece(board, {
+      ...piece,
+      position: newPosition,
+    });
+    paintPiece(board, newGhostPiece);
+    paintPiece(board, { ...piece, position: newPosition });
 
     return {
       ...state,
@@ -255,7 +257,8 @@ function moveLeft(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
   const newPosition = { ...piece.position, x: piece.position.x - 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
@@ -263,8 +266,12 @@ function moveLeft(state: State): State {
   if (!shouldMove) {
     return state;
   }
-
-  paintPieces(board, [{ ...piece, position: newPosition }]);
+  const newGhostPiece = createGhostPiece(board, {
+    ...piece,
+    position: newPosition,
+  });
+  paintPiece(board, newGhostPiece);
+  paintPiece(board, { ...piece, position: newPosition });
   return {
     ...state,
     board,
@@ -277,7 +284,8 @@ function rotate(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
   const newRotation = ((piece.rotation + 1) % 4) as Rotation;
   const newPiece = { ...piece, rotation: newRotation };
   const shouldRotate = canPlace(board, newPiece, piece.position);
@@ -285,7 +293,9 @@ function rotate(state: State): State {
     return state;
   }
 
-  paintPieces(board, [newPiece]);
+  const newGhostPiece = createGhostPiece(board, newPiece);
+  paintPiece(board, newGhostPiece);
+  paintPiece(board, newPiece);
   return {
     ...state,
     board,
@@ -299,7 +309,8 @@ function moveRight(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
   const newPosition = { ...piece.position, x: piece.position.x + 1 };
 
   const shouldMove = canPlace(board, piece, newPosition);
@@ -307,8 +318,13 @@ function moveRight(state: State): State {
   if (!shouldMove) {
     return state;
   }
+  const newGhostPiece = createGhostPiece(board, {
+    ...piece,
+    position: newPosition,
+  });
+  paintPiece(board, newGhostPiece);
 
-  paintPieces(board, [{ ...piece, position: newPosition }]);
+  paintPiece(board, { ...piece, position: newPosition });
 
   return {
     ...state,
@@ -322,12 +338,14 @@ function hardDrop(state: State): State {
 
   const board = state.board.map((row) => [...row]);
 
-  unpaintPieces(board, [piece]);
+  unpaintPiece(board, piece);
+  eraseGhostPiece(board);
 
   const newPiece = {
     position: { ...piece.position },
     rotation: piece.rotation,
     type: piece.type,
+    isGhost: false,
   };
   while (
     canPlace(board, newPiece, {
@@ -337,7 +355,7 @@ function hardDrop(state: State): State {
   ) {
     newPiece.position.y += 1;
   }
-  paintPieces(board, [newPiece]);
+  paintPiece(board, newPiece);
 
   const nbLinesCleared = clearFullLines(board);
   const score = calculateScore(nbLinesCleared);
@@ -352,7 +370,7 @@ function hardDrop(state: State): State {
     };
   }
 
-  paintPieces(board, [createPiece]);
+  paintPiece(board, createPiece);
 
   return {
     ...state,
@@ -376,6 +394,16 @@ function calculateScore(nbLinesCleared: number) {
       return 1200;
     default:
       return 0;
+  }
+}
+
+function eraseGhostPiece(board: string[][]) {
+  for (let y = 0; y < board.length; y++) {
+    for (let x = 0; x < board[y].length; x++) {
+      if (board[y][x].startsWith("G")) {
+        board[y][x] = "";
+      }
+    }
   }
 }
 
@@ -404,12 +432,36 @@ export function init(): State {
       type: currentPieceType,
       position: initialPosition,
       rotation: 0,
+      isGhost: false,
     },
     score: 0,
     nextPiecesQueue,
     holdPiece: null,
     canHold: true,
   };
+}
+
+function paintPiece(board: string[][], piece: Piece) {
+  const block = tetrominoes[piece.type].shapes[piece.rotation];
+  const type = piece.isGhost ? `G${piece.type}` : piece.type;
+  for (let y = 0; y < block.length; y++) {
+    for (let x = 0; x < block[y].length; x++) {
+      if (block[y][x]) {
+        board[y + piece.position.y][x + piece.position.x] = type;
+      }
+    }
+  }
+}
+
+function unpaintPiece(board: string[][], piece: Piece) {
+  const block = tetrominoes[piece.type].shapes[piece.rotation];
+  for (let y = 0; y < block.length; y++) {
+    for (let x = 0; x < block[y].length; x++) {
+      if (block[y][x]) {
+        board[y + piece.position.y][x + piece.position.x] = "";
+      }
+    }
+  }
 }
 
 export function GameProvider({ children }: { children: React.ReactNode }) {

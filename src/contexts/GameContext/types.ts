@@ -20,6 +20,7 @@ export type Piece = {
   type: Tetromino;
   position: { x: number; y: number };
   rotation: Rotation;
+  isGhost: boolean;
 };
 
 export type Rotation = 0 | 1 | 2 | 3;
