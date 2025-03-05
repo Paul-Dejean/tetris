@@ -38,6 +38,9 @@ export function createGhostPiece(board: string[][], piece: Piece): Piece {
 
 export function getLastValidPosition(board: string[][], piece: Piece) {
   const newPosition = { ...piece.position };
+  if (!isPlacementValid(board, { ...piece, position: newPosition })) {
+    return piece.position;
+  }
   while (isPlacementValid(board, { ...piece, position: newPosition })) {
     newPosition.y += 1;
   }

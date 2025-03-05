@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useGame } from "../contexts/GameContext";
-import { ActionType, GameStatus } from "../state/types";
-import { Tetromino, tetrominoes } from "../config/tetrominoes";
-import { useKeyboardControls } from "../hooks/useKeyboardControls";
+import { useCallback, useEffect } from "react";
 import tetrisTheme from "../assets/tetris-theme.mp3";
-import { PieceQueue } from "./PieceQueue";
+import { Tetromino, tetrominoes } from "../config/tetrominoes";
+import { useGame } from "../contexts/GameContext";
+import { useKeyboardControls } from "../hooks/useKeyboardControls";
+import { ActionType, GameStatus } from "../state/types";
 import { HoldPiece } from "./HoldPiece";
+import { PieceQueue } from "./PieceQueue";
 
+import { getLevel, getLevelSpeed, renderBoard } from "../engine";
+import { useFadeOutAnimation } from "../hooks/useFadeOutAnimation";
+import { useGameLoop } from "../hooks/useGameLoop";
 import { useTouchControls } from "../hooks/useTouchControls";
-import { renderBoard, getLevel, getLevelSpeed } from "../engine";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -34,33 +36,24 @@ function createCellStyle(cell: string) {
   };
 }
 
-function fadeOut(element: HTMLElement, duration = 300, callback?: () => void) {
-  let start: number | null = null;
-  // console.log({ element });
-  const step = (timestamp: number) => {
-    if (!start) start = timestamp;
-    const progress = timestamp - start;
-    const opacity = Math.max(1 - progress / duration, 0);
-    element.style.opacity = opacity.toString();
-    if (progress < duration) {
-      requestAnimationFrame(step);
-    } else {
-      if (callback) callback();
-      setTimeout(() => (element.style.opacity = "1"), 50);
-    }
-  };
-  requestAnimationFrame(step);
-}
-
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
-  const requestRef = useRef(0);
-  const previousTimeRef = useRef(0);
-  const board = useMemo(() => {
-    return renderBoard(state.board, state.currentPiece);
-  }, [state.board, state.currentPiece]);
-  const timeAccumulatorRef = useRef(0);
-  const [isClearingLines, setIsClearingLines] = useState(false);
+  const board = renderBoard(state.board, state.currentPiece);
+  useGameLoop({
+    state,
+    dispatch,
+    speed: getLevelSpeed(getLevel(state.nbLinesCleared)),
+  });
+
+  const onAnimationStart = useCallback(() => {
+    dispatch({ type: ActionType.START_ANIMATION });
+  }, [dispatch]);
+  const onAnimationEnd = useCallback(() => {
+    dispatch({ type: ActionType.CLEAR_FULL_LINES });
+    dispatch({ type: ActionType.END_ANIMATION });
+  }, [dispatch]);
+
+  useFadeOutAnimation(state.fullLines, onAnimationStart, onAnimationEnd);
 
   useKeyboardControls({
     onLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
@@ -92,56 +85,6 @@ export function TetrisBoard() {
 
   const level = getLevel(state.nbLinesCleared);
   const speed = getLevelSpeed(level);
-
-  const gameLoop = useCallback(
-    (time: number) => {
-      if (state.status === GameStatus.PLAYING && previousTimeRef.current) {
-        const deltaTime = time - previousTimeRef.current;
-        timeAccumulatorRef.current += deltaTime;
-
-        if (timeAccumulatorRef.current >= speed && !state.fullLines.length) {
-          dispatch({ type: ActionType.TICK });
-          timeAccumulatorRef.current = 0;
-        }
-
-        if (state.fullLines.length && !isClearingLines) {
-          // console.log("Clearing lines", isClearingLines);
-
-          setIsClearingLines(true);
-
-          const lineElements = state.fullLines.map((line) => {
-            return document.querySelector(`#row-${line}`);
-          });
-          // console.log({ lineElements });
-
-          let nb = 0;
-          lineElements.forEach((lineElement) => {
-            if (lineElement) {
-              fadeOut(lineElement as HTMLElement, 500, () => {
-                nb += 1;
-                if (nb === state.fullLines.length) {
-                  dispatch({ type: ActionType.CLEAR_FULL_LINES });
-                  setIsClearingLines(false);
-                  timeAccumulatorRef.current = 0;
-                }
-              });
-            }
-          });
-        }
-      }
-      previousTimeRef.current = time;
-      requestRef.current = requestAnimationFrame(gameLoop);
-    },
-    [dispatch, state.fullLines, state.status, isClearingLines, speed]
-  );
-
-  useEffect(() => {
-    // previousTimeRef.current = performance.now();
-    requestRef.current = requestAnimationFrame(gameLoop);
-    return () => {
-      cancelAnimationFrame(requestRef.current);
-    };
-  }, [gameLoop]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -181,7 +124,6 @@ export function TetrisBoard() {
               {board.map((row, rowIndex) => (
                 <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
                   {row.map((cell, cellIndex) => {
-                    // console.log({ cell });
                     const style = createCellStyle(cell);
 
                     return (

@@ -120,6 +120,7 @@ export function hardDrop(state: State): State {
       ...state,
       board,
       fullLines,
+      currentPiece: updatedPiece,
     };
   }
 

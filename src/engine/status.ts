@@ -16,6 +16,19 @@ export function resumeGame(state: State): State {
   }
   return {
     ...state,
-    status: GameStatus.PLAYING,
+  };
+}
+
+export function startGameAnimation(state: State): State {
+  return {
+    ...state,
+    isAnimationRunning: true,
+  };
+}
+
+export function endGameAnimation(state: State): State {
+  return {
+    ...state,
+    isAnimationRunning: false,
   };
 }

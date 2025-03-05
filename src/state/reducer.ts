@@ -44,7 +44,15 @@ export function reducer(state: State, action: Action) {
     case ActionType.CLEAR_FULL_LINES:
       return clearFullLines(state);
 
-    default:
-      return state;
+    case ActionType.START_ANIMATION:
+      return { ...state, isAnimationRunning: true };
+
+    case ActionType.END_ANIMATION:
+      return { ...state, isAnimationRunning: false };
+
+    default: {
+      const exhaustiveCheck: never = action;
+      throw new Error(`Unhandled action: ${exhaustiveCheck}`);
+    }
   }
 }
