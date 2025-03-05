@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { useGame } from "../contexts/GameContext";
@@ -8,6 +8,7 @@ import { HoldPiece } from "./HoldPiece";
 import { PieceQueue } from "./PieceQueue";
 
 import { getLevel, getLevelSpeed, renderBoard } from "../engine";
+import { useDropPieceAnimation } from "../hooks/useDropAnimation";
 import { useFadeOutAnimation } from "../hooks/useFadeOutAnimation";
 import { useGameLoop } from "../hooks/useGameLoop";
 import { useTouchControls } from "../hooks/useTouchControls";
@@ -39,21 +40,29 @@ function createCellStyle(cell: string) {
 
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
-  const board = renderBoard(state.board, state.currentPiece);
+  const board = renderBoard(
+    state.board,
+    state.currentPiece,
+    state.currentAnimation
+  );
   useGameLoop({
     state,
     dispatch,
     speed: getLevelSpeed(getLevel(state.nbLinesCleared)),
   });
 
-  const onAnimationEnd = useCallback(() => {
-    dispatch({ type: ActionType.END_ANIMATION });
-    dispatch({ type: ActionType.CLEAR_FULL_LINES });
-  }, [dispatch]);
   useFadeOutAnimation({
     fullLines: state.fullLines,
     animation: state.currentAnimation,
-    onAnimationComplete: onAnimationEnd,
+    dispatch,
+  });
+
+  useDropPieceAnimation({
+    board: state.board,
+    piece: state.currentPiece,
+    cellHeight: 32,
+    dispatch,
+    animation: state.currentAnimation,
   });
 
   useKeyboardControls({
@@ -129,6 +138,7 @@ export function TetrisBoard() {
 
                     return (
                       <div
+                        id={`cell-${rowIndex}-${cellIndex}`}
                         key={cellIndex}
                         className=" w-8 h-8"
                         style={style}

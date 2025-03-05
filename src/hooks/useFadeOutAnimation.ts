@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
-import { GameAnimation } from "../state/types";
+import { Action, ActionType, GameAnimation } from "../state/types";
 
 export function useFadeOutAnimation({
   fullLines,
   animation,
-  onAnimationComplete,
-  duration = 500,
+  dispatch,
+  duration = 200,
 }: {
   fullLines: number[];
   animation: GameAnimation | null;
-  onAnimationComplete: () => void;
+  dispatch: (action: Action) => void;
   duration?: number;
 }) {
   const isStarted = useRef(false);
@@ -23,15 +23,16 @@ export function useFadeOutAnimation({
 
       fadeOut(elements as HTMLElement[], duration, () => {
         isStarted.current = false;
-        onAnimationComplete();
+        dispatch({ type: ActionType.END_ANIMATION });
+        dispatch({ type: ActionType.CLEAR_FULL_LINES });
       });
     }
-  }, [fullLines, duration, onAnimationComplete, animation]);
+  }, [fullLines, duration, dispatch, animation]);
 }
 
 function fadeOut(
   elements: HTMLElement[],
-  duration = 300,
+  duration: number,
   callback?: () => void
 ) {
   let start: number | null = null;

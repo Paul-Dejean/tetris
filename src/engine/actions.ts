@@ -16,7 +16,7 @@ import { createNewPiece } from "./PieceQueue";
 import { calculateScore } from "./score";
 
 export function moveDown(state: State): State {
-  if (state.fullLines.length) {
+  if (state.currentAnimation) {
     return state;
   }
 
@@ -62,7 +62,7 @@ export function moveDown(state: State): State {
 }
 
 export function moveLeft(state: State): State {
-  if (state.fullLines.length) {
+  if (state.currentAnimation) {
     return state;
   }
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
@@ -77,7 +77,7 @@ export function moveLeft(state: State): State {
 }
 
 export function rotate(state: State): State {
-  if (state.fullLines.length) {
+  if (state.currentAnimation) {
     return state;
   }
 
@@ -93,7 +93,7 @@ export function rotate(state: State): State {
 }
 
 export function moveRight(state: State): State {
-  if (state.fullLines.length) {
+  if (state.currentAnimation) {
     return state;
   }
 
@@ -108,17 +108,13 @@ export function moveRight(state: State): State {
   };
 }
 
-export function hardDrop(state: State): State {
-  if (state.fullLines.length) {
-    return state;
-  }
+export function finishHardDrop(state: State): State {
+  const board = state.board.map((row) => [...row]);
 
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
     ...piece,
     position: getLastValidPosition(state.board, piece),
   }));
-
-  const board = state.board.map((row) => [...row]);
   addPieceToBoard(board, updatedPiece);
 
   const fullLines = getFullLines(board);
@@ -144,12 +140,24 @@ export function hardDrop(state: State): State {
     nextPiecesQueue,
     fullLines,
     canHold: true,
+    currentAnimation: null,
   };
   return newState;
 }
 
+export function hardDrop(state: State): State {
+  if (state.currentAnimation) {
+    return state;
+  }
+
+  return {
+    ...state,
+    currentAnimation: GameAnimation.DROP_PIECE,
+  };
+}
+
 export function holdPiece(state: State): State {
-  if (!state.canHold || state.fullLines.length) {
+  if (!state.canHold || state.currentAnimation) {
     return state;
   }
   const piece = state.currentPiece;

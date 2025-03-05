@@ -41,7 +41,8 @@ export type Action =
   | { type: ActionType.HOLD_PIECE }
   | { type: ActionType.CLEAR_FULL_LINES }
   | { type: ActionType.START_ANIMATION; payload: { animation: GameAnimation } }
-  | { type: ActionType.END_ANIMATION };
+  | { type: ActionType.END_ANIMATION }
+  | { type: ActionType.END_HARD_DROP };
 
 export enum ActionType {
   CLEAR_FULL_LINES = "CLEAR_FULL_LINES",
@@ -57,8 +58,10 @@ export enum ActionType {
   HARD_DROP = "HARD_DROP",
   ROTATE = "ROTATE",
   HOLD_PIECE = "HOLD_PIECE",
+  END_HARD_DROP = "END_HARD_DROP",
 }
 
 export enum GameAnimation {
   CLEAR_FULL_LINES = "CLEAR_FULL_LINES",
+  DROP_PIECE = "DROP_PIECE",
 }

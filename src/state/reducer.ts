@@ -7,7 +7,7 @@ import {
   rotate,
   hardDrop,
 } from "../engine";
-import { holdPiece, clearFullLines } from "../engine/actions";
+import { holdPiece, clearFullLines, finishHardDrop } from "../engine/actions";
 import { init } from "./state";
 import { Action, ActionType, State } from "./types";
 
@@ -49,6 +49,9 @@ export function reducer(state: State, action: Action) {
 
     case ActionType.END_ANIMATION:
       return { ...state, currentAnimation: null };
+
+    case ActionType.END_HARD_DROP:
+      return finishHardDrop(state);
 
     default: {
       const exhaustiveCheck: never = action;
