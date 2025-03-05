@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import tetrisTheme from "../assets/tetris-theme.mp3";
+
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { useGame } from "../contexts/GameContext";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
@@ -11,6 +11,7 @@ import { getLevel, getLevelSpeed, renderBoard } from "../engine";
 import { useFadeOutAnimation } from "../hooks/useFadeOutAnimation";
 import { useGameLoop } from "../hooks/useGameLoop";
 import { useTouchControls } from "../hooks/useTouchControls";
+import { AudioPlayer } from "./AudioPlayer";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -104,7 +105,7 @@ export function TetrisBoard() {
 
   return (
     <>
-      <audio src={tetrisTheme} autoPlay loop></audio>
+      <AudioPlayer />
       <div className="h-full overflow-hidden">
         <div className="absolute right-2 top-2 text-white">
           Score: {state.score}
