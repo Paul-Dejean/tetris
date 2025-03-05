@@ -46,15 +46,15 @@ export function TetrisBoard() {
     speed: getLevelSpeed(getLevel(state.nbLinesCleared)),
   });
 
-  const onAnimationStart = useCallback(() => {
-    dispatch({ type: ActionType.START_ANIMATION });
-  }, [dispatch]);
   const onAnimationEnd = useCallback(() => {
-    dispatch({ type: ActionType.CLEAR_FULL_LINES });
     dispatch({ type: ActionType.END_ANIMATION });
+    dispatch({ type: ActionType.CLEAR_FULL_LINES });
   }, [dispatch]);
-
-  useFadeOutAnimation(state.fullLines, onAnimationStart, onAnimationEnd);
+  useFadeOutAnimation({
+    fullLines: state.fullLines,
+    animation: state.currentAnimation,
+    onAnimationComplete: onAnimationEnd,
+  });
 
   useKeyboardControls({
     onLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),

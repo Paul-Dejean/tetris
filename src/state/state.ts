@@ -23,6 +23,6 @@ export function init(): State {
     holdPiece: null,
     canHold: true,
     nbLinesCleared: 0,
-    isAnimationRunning: false,
+    currentAnimation: null,
   };
 }

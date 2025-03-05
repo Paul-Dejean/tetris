@@ -45,10 +45,10 @@ export function reducer(state: State, action: Action) {
       return clearFullLines(state);
 
     case ActionType.START_ANIMATION:
-      return { ...state, isAnimationRunning: true };
+      return { ...state, currentAnimation: action.payload.animation };
 
     case ActionType.END_ANIMATION:
-      return { ...state, isAnimationRunning: false };
+      return { ...state, currentAnimation: null };
 
     default: {
       const exhaustiveCheck: never = action;

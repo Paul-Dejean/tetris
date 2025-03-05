@@ -1,5 +1,11 @@
 import { GAME_WIDTH, initialPosition } from "../config/constants";
-import { GameStatus, Piece, Rotation, State } from "../state/types";
+import {
+  GameAnimation,
+  GameStatus,
+  Piece,
+  Rotation,
+  State,
+} from "../state/types";
 import {
   addPieceToBoard,
   getFullLines,
@@ -34,6 +40,7 @@ export function moveDown(state: State): State {
       ...state,
       board,
       fullLines,
+      currentAnimation: GameAnimation.CLEAR_FULL_LINES,
     };
   }
 
@@ -121,6 +128,7 @@ export function hardDrop(state: State): State {
       board,
       fullLines,
       currentPiece: updatedPiece,
+      currentAnimation: GameAnimation.CLEAR_FULL_LINES,
     };
   }
 

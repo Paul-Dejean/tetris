@@ -10,7 +10,7 @@ export type State = {
   canHold: boolean;
   fullLines: number[];
   nbLinesCleared: number;
-  isAnimationRunning: boolean;
+  currentAnimation: GameAnimation | null;
 };
 
 export enum GameStatus {
@@ -40,7 +40,7 @@ export type Action =
   | { type: ActionType.ROTATE }
   | { type: ActionType.HOLD_PIECE }
   | { type: ActionType.CLEAR_FULL_LINES }
-  | { type: ActionType.START_ANIMATION }
+  | { type: ActionType.START_ANIMATION; payload: { animation: GameAnimation } }
   | { type: ActionType.END_ANIMATION };
 
 export enum ActionType {
@@ -57,4 +57,8 @@ export enum ActionType {
   HARD_DROP = "HARD_DROP",
   ROTATE = "ROTATE",
   HOLD_PIECE = "HOLD_PIECE",
+}
+
+export enum GameAnimation {
+  CLEAR_FULL_LINES = "CLEAR_FULL_LINES",
 }

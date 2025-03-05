@@ -1,4 +1,4 @@
-import { State, GameStatus } from "../state/types";
+import { State, GameStatus, GameAnimation } from "../state/types";
 
 export function pauseGame(state: State): State {
   if (state.status !== GameStatus.PLAYING) {
@@ -19,16 +19,19 @@ export function resumeGame(state: State): State {
   };
 }
 
-export function startGameAnimation(state: State): State {
+export function startGameAnimation(
+  state: State,
+  animation: GameAnimation
+): State {
   return {
     ...state,
-    isAnimationRunning: true,
+    currentAnimation: animation,
   };
 }
 
 export function endGameAnimation(state: State): State {
   return {
     ...state,
-    isAnimationRunning: false,
+    currentAnimation: null,
   };
 }

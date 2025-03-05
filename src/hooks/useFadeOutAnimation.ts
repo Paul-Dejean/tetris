@@ -1,42 +1,53 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { GameAnimation } from "../state/types";
 
-export function useFadeOutAnimation(
-  fullLines: number[],
-  onAnimationStart: () => void,
-  onAnimationComplete: () => void,
-  duration = 500
-) {
+export function useFadeOutAnimation({
+  fullLines,
+  animation,
+  onAnimationComplete,
+  duration = 500,
+}: {
+  fullLines: number[];
+  animation: GameAnimation | null;
+  onAnimationComplete: () => void;
+  duration?: number;
+}) {
+  const isStarted = useRef(false);
   useEffect(() => {
-    if (fullLines.length) {
-      onAnimationStart();
-      let completed = 0;
-      fullLines.forEach((line) => {
-        const element = document.querySelector(`#row-${line}`);
-        if (element) {
-          fadeOut(element as HTMLElement, duration, () => {
-            completed++;
-            if (completed === fullLines.length) {
-              onAnimationComplete();
-            }
-          });
-        }
+    console.log("trigger", isStarted.current, animation);
+    if (!isStarted.current && animation === GameAnimation.CLEAR_FULL_LINES) {
+      isStarted.current = true;
+      const elements = fullLines
+        .map((line) => document.querySelector(`#row-${line}`))
+        .filter((element) => element != null);
+
+      fadeOut(elements as HTMLElement[], duration, () => {
+        isStarted.current = false;
+        onAnimationComplete();
       });
     }
-  }, [fullLines, duration, onAnimationComplete, onAnimationStart]);
+  }, [fullLines, duration, onAnimationComplete, animation]);
 }
 
-function fadeOut(element: HTMLElement, duration = 300, callback?: () => void) {
+function fadeOut(
+  elements: HTMLElement[],
+  duration = 300,
+  callback?: () => void
+) {
   let start: number | null = null;
   const step = (timestamp: number) => {
     if (!start) start = timestamp;
     const progress = timestamp - start;
     const opacity = Math.max(1 - progress / duration, 0);
-    element.style.opacity = opacity.toString();
+    elements.forEach((element) => (element.style.opacity = opacity.toString()));
+
     if (progress < duration) {
       requestAnimationFrame(step);
     } else {
       if (callback) callback();
-      setTimeout(() => (element.style.opacity = "1"), 0);
+      setTimeout(() => {
+        elements.forEach((element) => (element.style.opacity = "1"));
+      }, 0);
     }
   };
   requestAnimationFrame(step);

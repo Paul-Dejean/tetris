@@ -1,9 +1,9 @@
 import { useRef, useCallback, useEffect } from "react";
-import { ActionType, GameStatus, State } from "../state/types";
+import { Action, ActionType, GameStatus, State } from "../state/types";
 
 interface GameLoopProps {
   state: State; // Replace with your state type
-  dispatch: (action: { type: ActionType }) => void; // Replace with your dispatch type
+  dispatch: (action: Action) => void; // Replace with your dispatch type
   speed: number;
 }
 
@@ -14,7 +14,8 @@ export function useGameLoop({ state, dispatch, speed }: GameLoopProps) {
 
   const gameLoop = useCallback(
     (time: number) => {
-      if (state.status === GameStatus.PLAYING && !state.isAnimationRunning) {
+      console.log({ Animation: state.currentAnimation });
+      if (state.status === GameStatus.PLAYING && !state.currentAnimation) {
         console.log("Game loop running");
         const deltaTime = time - previousTimeRef.current;
         timeAccumulatorRef.current += deltaTime;
@@ -27,7 +28,7 @@ export function useGameLoop({ state, dispatch, speed }: GameLoopProps) {
       previousTimeRef.current = time;
       requestRef.current = requestAnimationFrame(gameLoop);
     },
-    [dispatch, state.status, speed, state.isAnimationRunning]
+    [dispatch, state.status, speed, state.currentAnimation]
   );
 
   useEffect(() => {
