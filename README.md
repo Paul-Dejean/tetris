@@ -1,50 +1,62 @@
-# React + TypeScript + Vite
+# React Tetris Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern Tetris game built using React and Vite. Enjoy the classic Tetris experience with smooth controls <!-- and a responsive design. -->
 
-Currently, two official plugins are available:
+[Live Demo](https://tetris.pauldejean.dev)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Table of Contents
 
-## Expanding the ESLint configuration
+- [Features](#features)
+- [Controls](#controls)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Development](#development)
+- [Technologies](#technologies)
+- [License](#license)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Features
 
-- Configure the top-level `parserOptions` property like this:
+- **Classic Tetris Gameplay:** Enjoy the nostalgic Tetris experience with modern web performance.
+<!--  **Responsive Design:** Play on desktop or mobile with intuitive controls. -->
+- **Hold Feature:** Strategically hold pieces to maximize your gameplay.
+- **Smooth Animations:** Built for a fluid, engaging experience.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Controls
+
+The game supports the following commands:
+
+- **Left:** ← (Left Arrow)
+- **Right:** → (Right Arrow)
+- **Down:** ↓ (Down Arrow)
+- **Rotate:** ↑ (Up Arrow)
+- **Hold:** Shift
+- **Hard Drop:** Space
+
+## Installation
+
+To run the game locally, follow these steps:
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/react-tetris-game.git
+   cd react-tetris-game
+   ```
+
+2. **Install dependencies**:
+
+```bash
+npm install
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Usage
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+After installing the dependencies, start the development server:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm run dev
 ```
+
+## Author
+
+Paul Dejean (pauldejeandev@gmail.com)
