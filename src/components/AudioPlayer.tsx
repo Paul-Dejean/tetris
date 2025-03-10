@@ -1,24 +1,57 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import tetrisTheme1 from "../assets/tetris-theme-1.mp3";
 import tetrisTheme2 from "../assets/tetris-theme-2.mp3";
 import tetrisTheme3 from "../assets/tetris-theme-3.mp3";
+import { HeadphoneOff, Headphones } from "lucide-react";
+
+const themes = [tetrisTheme1, tetrisTheme2, tetrisTheme3];
 
 export function AudioPlayer() {
-  const themes = [tetrisTheme1, tetrisTheme2, tetrisTheme3];
   const [currentIndex, setCurrentIndex] = useState(
     Math.floor(Math.random() * themes.length)
   );
 
-  const handleEnded = () => {
+  const audioRef = useRef(new Audio(themes[currentIndex]));
+
+  const toggleAudio = () => {
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+  };
+
+  const handleEnded = useCallback(() => {
     let nextIndex;
     do {
       nextIndex = Math.floor(Math.random() * themes.length);
     } while (themes.length > 1 && nextIndex === currentIndex);
 
     setCurrentIndex(nextIndex);
-  };
+    audioRef.current.src = themes[nextIndex];
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    audio.addEventListener("ended", handleEnded);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentIndex, handleEnded]);
 
   return (
-    <audio src={themes[currentIndex]} autoPlay onEnded={handleEnded}></audio>
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={() => toggleAudio()}
+        type="button"
+        className="p-2 bg-gray-800 text-white rounded-full hover:bg-gray-700"
+      >
+        {audioRef.current.paused ? (
+          <HeadphoneOff size={24} />
+        ) : (
+          <Headphones size={24} />
+        )}
+      </button>
+    </div>
   );
 }

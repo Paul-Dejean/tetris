@@ -19,6 +19,7 @@ type KeyCallbacks = {
 
 export function useKeyboardControls(callbacks: KeyCallbacks) {
   const handleKeyDown = (event: KeyboardEvent) => {
+    event.preventDefault();
     switch (event.key) {
       case KEYBOARD_CONTROL_KEYS.LEFT:
         callbacks.onLeft?.();
