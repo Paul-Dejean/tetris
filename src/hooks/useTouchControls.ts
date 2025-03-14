@@ -18,6 +18,7 @@ export function useTouchControls({
   const isDragging = useRef(false);
 
   const handleTouchStart = (e: TouchEvent<HTMLElement>) => {
+    e.preventDefault();
     const touch = e.touches[0];
     startX.current = touch.pageX;
     startY.current = touch.pageY;
@@ -25,6 +26,7 @@ export function useTouchControls({
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLElement>) => {
+    e.preventDefault();
     const touch = e.touches[0];
     const diffX = touch.pageX - startX.current;
     const diffY = touch.pageY - startY.current;
@@ -46,6 +48,7 @@ export function useTouchControls({
   };
 
   const handleTouchEnd = (e: TouchEvent<HTMLElement>) => {
+    e.preventDefault();
     const touch = e.changedTouches[0];
     const diffX = touch.pageX - startX.current;
     const diffY = touch.pageY - startY.current;
