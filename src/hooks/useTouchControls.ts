@@ -8,6 +8,31 @@ type DragDetectorOptions = {
   onHorizontalDrag?: (diff: number) => void;
 };
 
+function throttleWithMax<T extends (value: number) => unknown>(
+  func: T,
+  delay: number
+): (value: number) => void {
+  let maxValue: number | undefined = undefined;
+  let scheduled = false;
+
+  return (value: number) => {
+    if (!scheduled) {
+      scheduled = true;
+      maxValue = value;
+      setTimeout(() => {
+        func(maxValue!);
+        scheduled = false;
+        maxValue = undefined;
+      }, delay);
+    } else {
+      // Update maxValue if the new value is more extreme (by absolute value)
+      if (maxValue === undefined || Math.abs(value) > Math.abs(maxValue)) {
+        maxValue = value;
+      }
+    }
+  };
+}
+
 export function useTouchControls({
   onTap,
   onVerticalDrag,
@@ -40,9 +65,9 @@ export function useTouchControls({
 
     if (isDragging.current) {
       if (Math.abs(diffX) > Math.abs(diffY)) {
-        onHorizontalDrag?.(diffX);
+        throttleWithMax(() => onHorizontalDrag?.(diffX), 100);
       } else {
-        onVerticalDrag?.(diffY);
+        throttleWithMax(() => onVerticalDrag?.(diffY), 100);
       }
     }
   };

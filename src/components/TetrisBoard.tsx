@@ -17,6 +17,22 @@ import { getBlockSize } from "../utils/blockSize";
 import { TetrisBlock } from "./TetrisBlock";
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
 
+export function throttle<T extends (...args: unknown[]) => unknown>(
+  func: T,
+  delay: number
+): T {
+  let lastCall = 0;
+
+  return function (...args: unknown[]) {
+    const now = Date.now();
+
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      return func(...args);
+    }
+  } as T;
+}
+
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
   const board = renderBoard(
@@ -62,14 +78,14 @@ export function TetrisBoard() {
     useTouchControls({
       onTap: () => dispatch({ type: ActionType.ROTATE_RIGHT }),
       onHorizontalDrag: (diff) => {
-        if (diff > 10) {
+        if (diff > 40) {
           dispatch({ type: ActionType.MOVE_RIGHT });
-        } else if (diff < -10) {
+        } else if (diff < -40) {
           dispatch({ type: ActionType.MOVE_LEFT });
         }
       },
       onVerticalDrag: (diff) => {
-        if (diff > 30) {
+        if (diff > 40) {
           dispatch({ type: ActionType.HARD_DROP });
         } else if (diff > 10) {
           dispatch({ type: ActionType.MOVE_DOWN });
@@ -98,7 +114,7 @@ export function TetrisBoard() {
   return (
     <>
       <div className="h-full flex flex-col justify-center overflow-hidden bg-[url('/game-wallpaper.webp')] bg-cover bg-center">
-        <div className="flex pt-8  flex-col-reverse md:flex-row justify-center items-center gap-x-4 gap-y-4">
+        <div className="flex pt-8  flex-col-reverse md:flex-row justify-center items-center md:items-start gap-x-4 gap-y-4">
           <div className="self-align-start md:block hidden">
             <HoldPiece />
           </div>
@@ -134,8 +150,8 @@ export function TetrisBoard() {
               ))}
             </div>
           </div>
-          <div className="flex flex-row md:flex-col items-center justify-between px-4">
-            <div className="flex flex-row gap-x-4 md:flex-col items-center">
+          <div className="flex flex-row md:flex-col items-center justify-between   px-4 gap-4">
+            <div className="flex flex-row gap-4 md:flex-col items-center">
               <PieceQueue />
 
               <div className="text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
