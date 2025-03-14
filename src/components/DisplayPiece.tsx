@@ -1,4 +1,5 @@
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
+import { TetrisBlock } from "./TetrisBlock";
 
 function trimShape(shape: string[][]) {
   // 1. Remove rows that are completely empty.
@@ -28,10 +29,8 @@ function trimShape(shape: string[][]) {
 }
 
 export function DisplayPiece({ type }: { type: Tetromino }) {
-  const nextPiece = tetrominoes[type];
-
-  const shape = trimShape(nextPiece.shapes[0]);
-
+  const piece = tetrominoes[type];
+  const shape = trimShape(piece.shapes[0]);
   const numCols = shape[0].length;
 
   return (
@@ -40,21 +39,9 @@ export function DisplayPiece({ type }: { type: Tetromino }) {
       style={{ gridTemplateColumns: `repeat(${numCols},1fr)` }}
     >
       {shape.map((row) => {
-        return row.map((cell, cellIndex) => {
+        return row.map((cell) => {
           if (!cell) return <div />;
-          const style = cell
-            ? {
-                backgroundColor: nextPiece.color,
-                borderWidth: "5px",
-                borderStyle: "outset",
-                borderRadius: "2px",
-                borderColor: nextPiece.color,
-              }
-            : {};
-
-          return (
-            <div key={cellIndex} className="border w-8 h-8" style={style}></div>
-          );
+          return <TetrisBlock color={piece.color} />;
         });
       })}
     </div>

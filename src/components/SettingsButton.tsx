@@ -20,7 +20,7 @@ export function SettingsButton() {
     <div>
       <button
         type="button"
-        className="p-2 bg-background text-white rounded-full hover:bg-gray-700"
+        className="p-2 bg-background text-white rounded-full hover:bg-gray-700 cursor-pointer"
         onClick={() => dispatch({ type: ActionType.OPEN_SETTINGS_MODAL })}
       >
         <SettingsIcon size={24} />
@@ -78,7 +78,7 @@ function SettingsModal({
                 {action.replace(/([A-Z])/g, " $1")}
               </span>
               <button
-                className="border px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 "
+                className="border px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 cursor-pointer "
                 onClick={(e) => {
                   e.preventDefault();
                   const button = e.currentTarget;
@@ -100,12 +100,14 @@ function SettingsModal({
         </div>
 
         <div className="mt-4 flex justify-end gap-x-2">
-          <button
-            onClick={() => saveSettings(initialSettings)}
-            className="px-4 py-2 bg-red-400 rounded"
-          >
-            Reset
-          </button>
+          {JSON.stringify(settings) !== JSON.stringify(initialSettings) && (
+            <button
+              onClick={() => saveSettings(initialSettings)}
+              className="px-4 py-2 bg-red-400 rounded  cursor-pointer"
+            >
+              Reset
+            </button>
+          )}
           <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
             Close
           </button>

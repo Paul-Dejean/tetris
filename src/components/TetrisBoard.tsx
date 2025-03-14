@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 
-import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { useGame } from "../contexts/GameContext";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
 import { ActionType, GameStatus } from "../state/types";
@@ -14,30 +13,9 @@ import { useGameLoop } from "../hooks/useGameLoop";
 import { useTouchControls } from "../hooks/useTouchControls";
 import { AudioPlayer } from "./AudioPlayer";
 import { SettingsButton } from "./SettingsButton";
-
-function createCellStyle(cell: string) {
-  if (!cell) return {};
-
-  if (cell.startsWith("G")) {
-    const color = tetrominoes[cell[1] as Tetromino].color;
-
-    return {
-      backgroundColor: color,
-      borderWidth: "5px",
-      borderStyle: "outset",
-      borderRadius: "2px",
-      borderColor: color,
-      opacity: 0.3,
-    };
-  }
-  return {
-    backgroundColor: tetrominoes[cell as Tetromino].color,
-    borderWidth: "5px",
-    borderStyle: "outset",
-    borderRadius: "2px",
-    borderColor: tetrominoes[cell as Tetromino].color,
-  };
-}
+import { getBlockSize } from "../utils/blockSize";
+import { TetrisBlock } from "./TetrisBlock";
+import { Tetromino, tetrominoes } from "../config/tetrominoes";
 
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
@@ -62,7 +40,7 @@ export function TetrisBoard() {
   useDropPieceAnimation({
     board: state.board,
     piece: state.currentPiece,
-    cellHeight: 32,
+    cellHeight: getBlockSize(),
     dispatch,
     animation: state.currentAnimation,
     duration: 150,
@@ -120,8 +98,8 @@ export function TetrisBoard() {
   return (
     <>
       <div className="h-full flex flex-col justify-center overflow-hidden bg-[url('/game-wallpaper.webp')] bg-cover bg-center">
-        <div className="flex pt-8 justify-center gap-x-4">
-          <div className="self-align-start">
+        <div className="flex pt-8  flex-col-reverse md:flex-row justify-center items-center gap-x-4 gap-y-4">
+          <div className="self-align-start md:block hidden">
             <HoldPiece />
           </div>
           <div>
@@ -134,33 +112,44 @@ export function TetrisBoard() {
               {board.map((row, rowIndex) => (
                 <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
                   {row.map((cell, cellIndex) => {
-                    const style = createCellStyle(cell);
+                    if (!cell)
+                      return (
+                        <div
+                          style={{
+                            width: getBlockSize(),
+                            height: getBlockSize(),
+                          }}
+                        />
+                      );
+                    const id = `cell-${rowIndex}-${cellIndex}`;
+                    if (cell.startsWith("G")) {
+                      const color = tetrominoes[cell[1] as Tetromino].color;
+                      return <TetrisBlock id={id} color={color} isGhost />;
+                    }
+                    const color = tetrominoes[cell as Tetromino]?.color ?? "";
 
-                    return (
-                      <div
-                        id={`cell-${rowIndex}-${cellIndex}`}
-                        key={cellIndex}
-                        className=" w-8 h-8"
-                        style={style}
-                      ></div>
-                    );
+                    return <TetrisBlock id={id} key={id} color={color} />;
                   })}
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex flex-col justify-between">
-            <PieceQueue />
+          <div className="flex flex-row md:flex-col items-center justify-between px-4">
+            <div className="flex flex-row gap-x-4 md:flex-col items-center">
+              <PieceQueue />
 
-            <div className="text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
-              <div>Level: {level}</div> <div>Speed: {speed}</div>
-            </div>
+              <div className="text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+                <div>Level: {level}</div> <div>Speed: {speed}</div>
+              </div>
 
-            <div className=" text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
-              Score: {state.score}
+              <div className=" text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+                Score: {state.score}
+              </div>
             </div>
             <div className="flex flex-col gap-y-2">
-              <SettingsButton />
+              <div className="md:block hidden">
+                <SettingsButton />
+              </div>
               <AudioPlayer />
             </div>
           </div>
@@ -171,7 +160,7 @@ export function TetrisBoard() {
             <div className="text-white text-4xl">Game Over</div>
             <div className="text-white text-2xl">Score: {state.score}</div>
             <button
-              className="border-primary border-1 rounded-lg text-white py-2 px-4 text-xl"
+              className="border-primary border-1 rounded-lg text-white py-2 px-4 text-xl cursor-pointer"
               onClick={() => dispatch({ type: ActionType.RESTART_GAME })}
             >
               Restart

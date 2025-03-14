@@ -6,6 +6,6 @@
 
   }
 
-  button {
-    cursor: pointer;
+  body {
+    overscroll-behavior: none;
   }

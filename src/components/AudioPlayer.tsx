@@ -45,7 +45,7 @@ export function AudioPlayer() {
       <button
         onClick={() => toggleAudio()}
         type="button"
-        className="p-2 bg-background text-white rounded-full hover:bg-gray-700"
+        className="p-2 bg-background text-white rounded-full hover:bg-gray-700 cursor-pointer"
       >
         {audioRef.current.paused ? (
           <HeadphoneOff size={24} />
