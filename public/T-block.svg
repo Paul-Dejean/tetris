@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+    width="60" height="40"
+    viewBox="0 0 60 40"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor">
+
+    <g transform="translate(0, 20)">
+        <rect x="0" y="0" width="20" height="20" fill="#855FA0" />
+        <path d="M 0 20 L 5 15 H 15 V 5 L 20 0 V 20 Z" fill="#3C2E4A" />
+    </g>
+    <g transform="translate(20, 20)">
+        <rect x="0" y="0" width="20" height="20" fill="#855FA0" />
+        <path d="M 0 20 L 5 15 H 15 V 5 L 20 0 V 20 Z" fill="#3C2E4A" />
+    </g>
+    <g transform="translate(20, 0)">
+        <rect x="0" y="0" width="20" height="20" fill="#855FA0" />
+        <path d="M 0 20 L 5 15 H 15 V 5 L 20 0 V 20 Z" fill="#3C2E4A" />
+    </g>
+    <g transform="translate(40, 20)">
+        <rect x="0" y="0" width="20" height="20" fill="#855FA0" />
+        <path d="M 0 20 L 5 15 H 15 V 5 L 20 0 V 20 Z" fill="#3C2E4A" />
+    </g>
+
+</svg>

@@ -1,11 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: var(--color-white);
-    --color-background: var(--color-black);
+  --color-primary: var(--color-white);
+  --color-background: var(--color-black);
+}
 
-  }
-
-  body {
-    overscroll-behavior: none;
-  }
+body {
+  overscroll-behavior: none;
+}
