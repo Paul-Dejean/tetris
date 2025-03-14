@@ -2,6 +2,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useGame } from "../contexts/GameContext";
 import { ActionType, Settings } from "../state/types";
+import { initialSettings } from "../state/state";
 
 export function SettingsButton() {
   const { state, dispatch } = useGame();
@@ -60,8 +61,14 @@ function SettingsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+    <div
+      className="fixed inset-0 bg-black/75 flex justify-center items-center"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white p-6 rounded-lg w-96 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-bold mb-4">Keyboard Settings</h2>
 
         <div className="space-y-3">
@@ -71,12 +78,17 @@ function SettingsModal({
                 {action.replace(/([A-Z])/g, " $1")}
               </span>
               <button
-                className="border px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
+                className="border px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 "
                 onClick={(e) => {
                   e.preventDefault();
+                  const button = e.currentTarget;
+
                   document.addEventListener(
                     "keydown",
-                    (event) => handleKeyChange(action as keyof Settings, event),
+                    (event) => {
+                      handleKeyChange(action as keyof Settings, event);
+                      button.blur();
+                    },
                     { once: true }
                   );
                 }}
@@ -87,7 +99,13 @@ function SettingsModal({
           ))}
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-x-2">
+          <button
+            onClick={() => saveSettings(initialSettings)}
+            className="px-4 py-2 bg-red-400 rounded"
+          >
+            Reset
+          </button>
           <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
             Close
           </button>

@@ -56,6 +56,7 @@ export function TetrisBoard() {
     fullLines: state.fullLines,
     animation: state.currentAnimation,
     dispatch,
+    duration: 150,
   });
 
   useDropPieceAnimation({
@@ -64,6 +65,7 @@ export function TetrisBoard() {
     cellHeight: 32,
     dispatch,
     animation: state.currentAnimation,
+    duration: 150,
   });
 
   useKeyboardControls({

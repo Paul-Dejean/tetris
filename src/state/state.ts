@@ -3,6 +3,16 @@ import { createNextPiecesQueue } from "../engine/PieceQueue";
 import { Tetromino } from "../config/tetrominoes";
 import { State, GameStatus } from "./types";
 
+export const initialSettings = {
+  moveDown: "ArrowDown",
+  moveLeft: "ArrowLeft",
+  moveRight: "ArrowRight",
+  rotateRight: "ArrowUp",
+  rotateLeft: "KeyC",
+  hardDrop: "Space",
+  holdPiece: "ShiftLeft",
+};
+
 export function init(): State {
   const nextPiecesQueue = createNextPiecesQueue();
   const currentPieceType = nextPiecesQueue.shift() as Tetromino;
@@ -25,14 +35,6 @@ export function init(): State {
     nbLinesCleared: 0,
     currentAnimation: null,
     settingsModalOpen: false,
-    settings: {
-      moveDown: "ArrowDown",
-      moveLeft: "ArrowLeft",
-      moveRight: "ArrowRight",
-      rotateRight: "ArrowUp",
-      rotateLeft: "KeyC",
-      hardDrop: "Space",
-      holdPiece: "ShiftLeft",
-    },
+    settings: initialSettings,
   };
 }

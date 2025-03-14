@@ -16,7 +16,7 @@ import { createNewPiece } from "./PieceQueue";
 import { calculateScore } from "./score";
 
 export function moveDown(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
 
@@ -62,7 +62,7 @@ export function moveDown(state: State): State {
 }
 
 export function moveLeft(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
@@ -77,7 +77,7 @@ export function moveLeft(state: State): State {
 }
 
 export function rotateRight(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
 
@@ -93,7 +93,7 @@ export function rotateRight(state: State): State {
 }
 
 export function rotateLeft(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
 
@@ -109,7 +109,7 @@ export function rotateLeft(state: State): State {
 }
 
 export function moveRight(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
 
@@ -162,7 +162,7 @@ export function finishHardDrop(state: State): State {
 }
 
 export function hardDrop(state: State): State {
-  if (state.currentAnimation) {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
     return state;
   }
 
@@ -173,7 +173,11 @@ export function hardDrop(state: State): State {
 }
 
 export function holdPiece(state: State): State {
-  if (!state.canHold || state.currentAnimation) {
+  if (
+    !state.canHold ||
+    state.currentAnimation ||
+    state.status !== GameStatus.PLAYING
+  ) {
     return state;
   }
   const piece = state.currentPiece;

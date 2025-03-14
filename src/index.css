@@ -5,3 +5,7 @@
     --color-background: var(--color-black);
 
   }
+
+  button {
+    cursor: pointer;
+  }

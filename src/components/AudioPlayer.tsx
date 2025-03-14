@@ -34,6 +34,7 @@ export function AudioPlayer() {
   useEffect(() => {
     const audio = audioRef.current;
     audio.addEventListener("ended", handleEnded);
+    audioRef.current.play().catch(() => {});
     return () => {
       audio.removeEventListener("ended", handleEnded);
     };
