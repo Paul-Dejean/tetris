@@ -1,5 +1,15 @@
 import { Tetromino } from "../config/tetrominoes";
 
+export type Settings = {
+  moveDown: string;
+  moveLeft: string;
+  moveRight: string;
+  rotateRight: string;
+  rotateLeft: string;
+  hardDrop: string;
+  holdPiece: string;
+};
+
 export type State = {
   status: GameStatus;
   board: string[][];
@@ -11,6 +21,8 @@ export type State = {
   fullLines: number[];
   nbLinesCleared: number;
   currentAnimation: GameAnimation | null;
+  settingsModalOpen: boolean;
+  settings: Settings;
 };
 
 export enum GameStatus {
@@ -37,12 +49,19 @@ export type Action =
   | { type: ActionType.MOVE_LEFT }
   | { type: ActionType.MOVE_RIGHT }
   | { type: ActionType.HARD_DROP }
-  | { type: ActionType.ROTATE }
+  | { type: ActionType.ROTATE_LEFT }
+  | { type: ActionType.ROTATE_RIGHT }
   | { type: ActionType.HOLD_PIECE }
   | { type: ActionType.CLEAR_FULL_LINES }
   | { type: ActionType.START_ANIMATION; payload: { animation: GameAnimation } }
   | { type: ActionType.END_ANIMATION }
-  | { type: ActionType.END_HARD_DROP };
+  | { type: ActionType.END_HARD_DROP }
+  | { type: ActionType.OPEN_SETTINGS_MODAL }
+  | { type: ActionType.CLOSE_SETTINGS_MODAL }
+  | {
+      type: ActionType.SAVE_SETTINGS;
+      payload: { settings: Settings };
+    };
 
 export enum ActionType {
   CLEAR_FULL_LINES = "CLEAR_FULL_LINES",
@@ -56,9 +75,13 @@ export enum ActionType {
   MOVE_LEFT = "MOVE_LEFT",
   MOVE_RIGHT = "MOVE_RIGHT",
   HARD_DROP = "HARD_DROP",
-  ROTATE = "ROTATE",
+  ROTATE_LEFT = "ROTATE_LEFT",
+  ROTATE_RIGHT = "ROTATE_RIGHT",
   HOLD_PIECE = "HOLD_PIECE",
   END_HARD_DROP = "END_HARD_DROP",
+  OPEN_SETTINGS_MODAL = "OPEN_SETTINGS_MODAL",
+  CLOSE_SETTINGS_MODAL = "CLOSE_SETTINGS_MODAL",
+  SAVE_SETTINGS = "SAVE_SETTINGS",
 }
 
 export enum GameAnimation {

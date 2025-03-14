@@ -14,7 +14,6 @@ export function useFadeOutAnimation({
 }) {
   const isStarted = useRef(false);
   useEffect(() => {
-    console.log("trigger", isStarted.current, animation);
     if (!isStarted.current && animation === GameAnimation.CLEAR_FULL_LINES) {
       isStarted.current = true;
       const elements = fullLines

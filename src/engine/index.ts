@@ -1,4 +1,11 @@
-import { moveDown, moveLeft, moveRight, rotate, hardDrop } from "./actions";
+import {
+  moveDown,
+  moveLeft,
+  moveRight,
+  hardDrop,
+  rotateRight,
+  rotateLeft,
+} from "./actions";
 import {
   endGameAnimation,
   pauseGame,
@@ -7,12 +14,14 @@ import {
 } from "./status";
 import { renderBoard } from "./board";
 import { getLevel, getLevelSpeed } from "./score";
+import { closeSettings, openSettings } from "./settings";
 
 export {
   moveDown,
   moveLeft,
   moveRight,
-  rotate,
+  rotateLeft,
+  rotateRight,
   hardDrop,
   pauseGame,
   resumeGame,
@@ -21,4 +30,6 @@ export {
   renderBoard,
   startGameAnimation,
   endGameAnimation,
+  openSettings,
+  closeSettings,
 };

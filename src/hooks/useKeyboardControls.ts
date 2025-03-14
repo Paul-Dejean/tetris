@@ -1,53 +1,29 @@
-import { useEffect } from "react";
-const KEYBOARD_CONTROL_KEYS = {
-  LEFT: "ArrowLeft",
-  RIGHT: "ArrowRight",
-  DOWN: "ArrowDown",
-  UP: "ArrowUp",
-  SPACE: " ",
-  SHIFT: "Shift",
-};
+import { useCallback, useEffect } from "react";
+import { useGame } from "../contexts/GameContext";
+import { Settings } from "../state/types";
 
 type KeyCallbacks = {
-  onLeft?: () => void;
-  onRight?: () => void;
-  onDown?: () => void;
-  onUp?: () => void;
-  onSpace?: () => void;
-  onShift?: () => void;
+  [key in keyof Settings]: () => void; // Allow any key mapping dynamically
 };
-
 export function useKeyboardControls(callbacks: KeyCallbacks) {
-  const handleKeyDown = (event: KeyboardEvent) => {
-    event.preventDefault();
-    switch (event.key) {
-      case KEYBOARD_CONTROL_KEYS.LEFT:
-        callbacks.onLeft?.();
-        break;
-      case KEYBOARD_CONTROL_KEYS.RIGHT:
-        callbacks.onRight?.();
-        break;
-      case KEYBOARD_CONTROL_KEYS.DOWN:
-        callbacks.onDown?.();
-        break;
-      case KEYBOARD_CONTROL_KEYS.UP:
-        callbacks.onUp?.();
-        break;
-      case KEYBOARD_CONTROL_KEYS.SPACE:
-        callbacks.onSpace?.();
-        break;
-      case KEYBOARD_CONTROL_KEYS.SHIFT:
-        callbacks.onShift?.();
-        break;
-      default:
-        break;
-    }
-  };
+  const { state } = useGame();
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      event.preventDefault();
+      const action = Object.keys(state.settings).find(
+        (action) => state.settings[action as keyof Settings] === event.code
+      ) as keyof Settings | undefined;
+      if (action && callbacks[action]) {
+        callbacks[action]();
+      }
+    },
+    [callbacks, state.settings]
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [state.settings, handleKeyDown]);
 }

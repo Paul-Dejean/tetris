@@ -40,11 +40,11 @@ export function AudioPlayer() {
   }, [currentIndex, handleEnded]);
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center">
       <button
         onClick={() => toggleAudio()}
         type="button"
-        className="p-2 bg-gray-800 text-white rounded-full hover:bg-gray-700"
+        className="p-2 bg-background text-white rounded-full hover:bg-gray-700"
       >
         {audioRef.current.paused ? (
           <HeadphoneOff size={24} />

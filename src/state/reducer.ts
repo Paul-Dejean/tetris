@@ -4,10 +4,18 @@ import {
   moveDown,
   moveLeft,
   moveRight,
-  rotate,
   hardDrop,
+  openSettings,
+  closeSettings,
 } from "../engine";
-import { holdPiece, clearFullLines, finishHardDrop } from "../engine/actions";
+import {
+  holdPiece,
+  clearFullLines,
+  finishHardDrop,
+  rotateLeft,
+  rotateRight,
+} from "../engine/actions";
+import { saveSettings } from "../engine/settings";
 import { init } from "./state";
 import { Action, ActionType, State } from "./types";
 
@@ -32,8 +40,11 @@ export function reducer(state: State, action: Action) {
     case ActionType.MOVE_RIGHT:
       return moveRight(state);
 
-    case ActionType.ROTATE:
-      return rotate(state);
+    case ActionType.ROTATE_RIGHT:
+      return rotateRight(state);
+
+    case ActionType.ROTATE_LEFT:
+      return rotateLeft(state);
 
     case ActionType.HARD_DROP:
       return hardDrop(state);
@@ -52,6 +63,15 @@ export function reducer(state: State, action: Action) {
 
     case ActionType.END_HARD_DROP:
       return finishHardDrop(state);
+
+    case ActionType.OPEN_SETTINGS_MODAL:
+      return openSettings(state);
+
+    case ActionType.CLOSE_SETTINGS_MODAL:
+      return closeSettings(state);
+
+    case ActionType.SAVE_SETTINGS:
+      return saveSettings(state, action.payload.settings);
 
     default: {
       const exhaustiveCheck: never = action;

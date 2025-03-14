@@ -13,6 +13,7 @@ import { useFadeOutAnimation } from "../hooks/useFadeOutAnimation";
 import { useGameLoop } from "../hooks/useGameLoop";
 import { useTouchControls } from "../hooks/useTouchControls";
 import { AudioPlayer } from "./AudioPlayer";
+import { SettingsButton } from "./SettingsButton";
 
 function createCellStyle(cell: string) {
   if (!cell) return {};
@@ -66,19 +67,20 @@ export function TetrisBoard() {
   });
 
   useKeyboardControls({
-    onLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
-    onRight: () => dispatch({ type: ActionType.MOVE_RIGHT }),
-    onDown: () => dispatch({ type: ActionType.MOVE_DOWN }),
-    onSpace: () => {
+    moveLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
+    moveRight: () => dispatch({ type: ActionType.MOVE_RIGHT }),
+    moveDown: () => dispatch({ type: ActionType.MOVE_DOWN }),
+    hardDrop: () => {
       dispatch({ type: ActionType.HARD_DROP });
     },
-    onUp: () => dispatch({ type: ActionType.ROTATE }),
-    onShift: () => dispatch({ type: ActionType.HOLD_PIECE }),
+    rotateLeft: () => dispatch({ type: ActionType.ROTATE_LEFT }),
+    rotateRight: () => dispatch({ type: ActionType.ROTATE_RIGHT }),
+    holdPiece: () => dispatch({ type: ActionType.HOLD_PIECE }),
   });
 
   const { handleTouchStart, handleTouchMove, handleTouchEnd } =
     useTouchControls({
-      onTap: () => dispatch({ type: ActionType.ROTATE }),
+      onTap: () => dispatch({ type: ActionType.ROTATE_RIGHT }),
       onHorizontalDrag: (diff) => {
         if (diff > 10) {
           dispatch({ type: ActionType.MOVE_RIGHT });
@@ -113,11 +115,7 @@ export function TetrisBoard() {
 
   return (
     <>
-      <div className="h-full flex flex-col justify-center overflow-hidden">
-        <div className="absolute right-2 top-2 text-white">
-          Score: {state.score}
-        </div>
-
+      <div className="h-full flex flex-col justify-center overflow-hidden bg-[url('/game-wallpaper.webp')] bg-cover bg-center">
         <div className="flex pt-8 justify-center gap-x-4">
           <div className="self-align-start">
             <HoldPiece />
@@ -127,7 +125,7 @@ export function TetrisBoard() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="border-b border-l border-r border-primary border-solid"
+              className="border-b border-l border-r border-primary border-solid bg-background"
             >
               {board.map((row, rowIndex) => (
                 <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
@@ -149,16 +147,23 @@ export function TetrisBoard() {
           </div>
           <div className="flex flex-col justify-between">
             <PieceQueue />
-            <div>
+
+            <div className="text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+              <div>Level: {level}</div> <div>Speed: {speed}</div>
+            </div>
+
+            <div className=" text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+              Score: {state.score}
+            </div>
+            <div className="flex flex-col gap-y-2">
+              <SettingsButton />
               <AudioPlayer />
             </div>
           </div>
         </div>
-        <div className="text-white text-center my-2">
-          Level: {level} Speed: {speed}
-        </div>
+
         {state.status === GameStatus.GAME_OVER && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 gap-y-8">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-y-8">
             <div className="text-white text-4xl">Game Over</div>
             <div className="text-white text-2xl">Score: {state.score}</div>
             <button

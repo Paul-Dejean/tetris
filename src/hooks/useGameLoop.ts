@@ -14,9 +14,7 @@ export function useGameLoop({ state, dispatch, speed }: GameLoopProps) {
 
   const gameLoop = useCallback(
     (time: number) => {
-      // console.log({ Animation: state.currentAnimation });
       if (state.status === GameStatus.PLAYING && !state.currentAnimation) {
-        // console.log("Game loop running");
         const deltaTime = time - previousTimeRef.current;
         timeAccumulatorRef.current += deltaTime;
 

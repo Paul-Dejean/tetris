@@ -66,8 +66,6 @@ function dropAnimation(
     element.style.backgroundColor = "transparent";
   });
 
-  console.log({ elements });
-
   const trailingLightDiv = createTrailingLightDiv(elements);
   const pathElem = trailingLightDiv.querySelector("path") as SVGPathElement;
   const { bottom, top } = getElementsBoundingRect(elements);
@@ -98,7 +96,6 @@ function dropAnimation(
       setTimeout(() => {
         document.body.removeChild(trailingLightDiv);
         elements.forEach((element) => {
-          console.log({ initialStyle });
           element.style.borderWidth = initialStyle.borderWidth;
           element.style.backgroundColor = initialStyle.backgroundColor;
           element.style.borderColor = initialStyle.borderColor;

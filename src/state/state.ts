@@ -24,5 +24,15 @@ export function init(): State {
     canHold: true,
     nbLinesCleared: 0,
     currentAnimation: null,
+    settingsModalOpen: false,
+    settings: {
+      moveDown: "ArrowDown",
+      moveLeft: "ArrowLeft",
+      moveRight: "ArrowRight",
+      rotateRight: "ArrowUp",
+      rotateLeft: "KeyC",
+      hardDrop: "Space",
+      holdPiece: "ShiftLeft",
+    },
   };
 }

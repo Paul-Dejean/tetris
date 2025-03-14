@@ -76,7 +76,7 @@ export function moveLeft(state: State): State {
   };
 }
 
-export function rotate(state: State): State {
+export function rotateRight(state: State): State {
   if (state.currentAnimation) {
     return state;
   }
@@ -84,6 +84,22 @@ export function rotate(state: State): State {
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
     ...piece,
     rotation: ((piece.rotation + 1) % 4) as Rotation,
+  }));
+
+  return {
+    ...state,
+    currentPiece: updatedPiece,
+  };
+}
+
+export function rotateLeft(state: State): State {
+  if (state.currentAnimation) {
+    return state;
+  }
+
+  const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
+    ...piece,
+    rotation: ((piece.rotation + 3) % 4) as Rotation,
   }));
 
   return {
