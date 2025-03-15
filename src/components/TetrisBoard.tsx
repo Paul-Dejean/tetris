@@ -145,19 +145,19 @@ export function TetrisBoard() {
               ))}
             </div>
           </div>
-          <div className="flex flex-row md:flex-col items-center justify-between   px-4 gap-4">
-            <div className="flex flex-row gap-4 md:flex-col items-center">
+          <div className="flex flex-row md:flex-col items-end justify-between mb-4  px-4 gap-4 md:h-full">
+            <div className="flex flex-row gap-4 md:flex-col items-end md:items-stretch md:h-full">
               <PieceQueue />
 
-              <div className="text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+              <div className="text-white text-center border-2 border-white rounded-lg p-2 bg-background">
                 <div>Level: {level}</div> <div>Speed: {speed}</div>
               </div>
 
-              <div className=" text-white text-center my-2 border-2 border-white rounded-lg p-2 bg-background">
+              <div className=" text-white text-center  border-2 border-white rounded-lg p-2 bg-background">
                 Score: {state.score}
               </div>
             </div>
-            <div className="flex flex-col gap-y-2">
+            <div className="flex flex-col gap-y-2 justify-end md:self-start">
               <div className="md:block hidden">
                 <SettingsButton />
               </div>
