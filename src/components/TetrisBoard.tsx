@@ -77,17 +77,12 @@ export function TetrisBoard() {
   const { handleTouchStart, handleTouchMove, handleTouchEnd } =
     useTouchControls({
       onTap: () => dispatch({ type: ActionType.ROTATE_RIGHT }),
-      onHorizontalDrag: (diff) => {
-        if (diff > 40) {
-          dispatch({ type: ActionType.MOVE_RIGHT });
-        } else if (diff < -40) {
-          dispatch({ type: ActionType.MOVE_LEFT });
-        }
-      },
-      onVerticalDrag: (diff) => {
-        if (diff > 40) {
+      onLeftDrag: () => dispatch({ type: ActionType.MOVE_LEFT }),
+      onRightDrag: () => dispatch({ type: ActionType.MOVE_RIGHT }),
+      onDownDrag: (velocity) => {
+        if (velocity > 1) {
           dispatch({ type: ActionType.HARD_DROP });
-        } else if (diff > 10) {
+        } else {
           dispatch({ type: ActionType.MOVE_DOWN });
         }
       },

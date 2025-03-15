@@ -1,73 +1,73 @@
 import { useRef, TouchEvent } from "react";
 
-const tapThreshold = 10;
-
 type DragDetectorOptions = {
   onTap?: () => void;
-  onVerticalDrag?: (diff: number) => void;
-  onHorizontalDrag?: (diff: number) => void;
+  onRightDrag?: () => void;
+  onLeftDrag?: () => void;
+  onDownDrag?: (velocity: number) => void;
 };
 
-function throttleWithMax<T extends (value: number) => unknown>(
-  func: T,
-  delay: number
-): (value: number) => void {
-  let maxValue: number | undefined = undefined;
-  let scheduled = false;
-
-  return (value: number) => {
-    if (!scheduled) {
-      scheduled = true;
-      maxValue = value;
-      setTimeout(() => {
-        func(maxValue!);
-        scheduled = false;
-        maxValue = undefined;
-      }, delay);
-    } else {
-      // Update maxValue if the new value is more extreme (by absolute value)
-      if (maxValue === undefined || Math.abs(value) > Math.abs(maxValue)) {
-        maxValue = value;
-      }
-    }
-  };
-}
+const MOVE_THRESHOLD = 25;
 
 export function useTouchControls({
   onTap,
-  onVerticalDrag,
-  onHorizontalDrag,
+  onRightDrag,
+  onLeftDrag,
+  onDownDrag,
 }: DragDetectorOptions) {
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const isDragging = useRef(false);
+  const touchDataRef = useRef({
+    startX: 0,
+    startY: 0,
+    lastX: 0,
+    lastY: 0,
+    startTime: 0,
+  });
 
   const handleTouchStart = (e: TouchEvent<HTMLElement>) => {
-    e.preventDefault();
     const touch = e.touches[0];
-    startX.current = touch.pageX;
-    startY.current = touch.pageY;
-    isDragging.current = false;
+    const x = touch.clientX;
+    const y = touch.clientY;
+    const now = Date.now();
+
+    touchDataRef.current = {
+      startX: x,
+      startY: y,
+      lastX: x,
+      lastY: y,
+      startTime: now,
+    };
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLElement>) => {
-    e.preventDefault();
     const touch = e.touches[0];
-    const diffX = touch.pageX - startX.current;
-    const diffY = touch.pageY - startY.current;
+    const { lastX, lastY } = touchDataRef.current;
+    const currentX = touch.clientX;
+    const currentY = touch.clientY;
 
-    if (
-      !isDragging.current &&
-      (Math.abs(diffX) > tapThreshold || Math.abs(diffY) > tapThreshold)
-    ) {
-      isDragging.current = true;
-    }
+    const deltaX = currentX - lastX;
+    const deltaY = currentY - lastY;
 
-    if (isDragging.current) {
-      if (Math.abs(diffX) > Math.abs(diffY)) {
-        throttleWithMax(() => onHorizontalDrag?.(diffX), 100);
-      } else {
-        throttleWithMax(() => onVerticalDrag?.(diffY), 100);
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (Math.abs(deltaX) > MOVE_THRESHOLD) {
+        if (deltaX < 0) {
+          onLeftDrag?.();
+        } else {
+          onRightDrag?.();
+        }
+        touchDataRef.current.lastX = currentX;
+        touchDataRef.current.lastY = currentY;
+      }
+    } else {
+      const now = Date.now();
+      const deltaTime = now - touchDataRef.current.startTime;
+      if (deltaTime > 0) {
+        const velocity = Math.abs(deltaY) / deltaTime;
+        if (deltaY > MOVE_THRESHOLD) {
+          onDownDrag?.(velocity);
+          touchDataRef.current.startTime = now;
+          touchDataRef.current.lastX = currentX;
+          touchDataRef.current.lastY = currentY;
+        }
       }
     }
   };
@@ -75,21 +75,12 @@ export function useTouchControls({
   const handleTouchEnd = (e: TouchEvent<HTMLElement>) => {
     e.preventDefault();
     const touch = e.changedTouches[0];
-    const diffX = touch.pageX - startX.current;
-    const diffY = touch.pageY - startY.current;
-
-    if (
-      !isDragging.current &&
-      Math.abs(diffX) < tapThreshold &&
-      Math.abs(diffY) < tapThreshold
-    ) {
+    const diffX = touch.pageX - touchDataRef.current.startX;
+    const diffY = touch.pageY - touchDataRef.current.startY;
+    if (Math.abs(diffX) < MOVE_THRESHOLD && Math.abs(diffY) < MOVE_THRESHOLD) {
       onTap?.();
     }
   };
 
-  return {
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-  };
+  return { handleTouchStart, handleTouchMove, handleTouchEnd };
 }
