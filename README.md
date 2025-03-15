@@ -1,6 +1,6 @@
 # React Tetris Game
 
-A modern Tetris game built using React and Vite. Enjoy the classic Tetris experience with smooth controls <!-- and a responsive design. -->
+A modern Tetris game built using React and Vite. Enjoy the classic Tetris experience with smooth controls and a responsive design.
 
 [Live Demo](https://tetris.pauldejean.dev)
 
@@ -17,7 +17,7 @@ A modern Tetris game built using React and Vite. Enjoy the classic Tetris experi
 ## Features
 
 - **Classic Tetris Gameplay:** Enjoy the nostalgic Tetris experience with modern web performance.
-<!--  **Responsive Design:** Play on desktop or mobile with intuitive controls. -->
+- **Responsive Design:** Play on desktop or mobile with intuitive controls.
 - **Hold Feature:** Strategically hold pieces to maximize your gameplay.
 - **Smooth Animations:** Built for a fluid, engaging experience.
 
