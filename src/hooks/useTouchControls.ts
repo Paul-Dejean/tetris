@@ -7,7 +7,7 @@ type DragDetectorOptions = {
   onDownDrag?: (velocity: number) => void;
 };
 
-const MOVE_THRESHOLD = 25;
+const MOVE_THRESHOLD = 20;
 
 export function useTouchControls({
   onTap,

@@ -11,13 +11,17 @@ export function AudioPlayer() {
     Math.floor(Math.random() * themes.length)
   );
 
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const audioRef = useRef(new Audio(themes[currentIndex]));
 
   const toggleAudio = () => {
     if (audioRef.current.paused) {
       audioRef.current.play();
+      setIsPlaying(true);
     } else {
       audioRef.current.pause();
+      setIsPlaying(false);
     }
   };
 
@@ -34,11 +38,37 @@ export function AudioPlayer() {
   useEffect(() => {
     const audio = audioRef.current;
     audio.addEventListener("ended", handleEnded);
-    audioRef.current.play().catch(() => {});
+
+    // Listen for play and pause events to sync UI state
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+
+    // Auto-play on mount/update
+    audio.play().catch(() => {});
+
     return () => {
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
     };
   }, [currentIndex, handleEnded]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <div className="flex items-center">
@@ -47,11 +77,7 @@ export function AudioPlayer() {
         type="button"
         className="p-2 bg-background text-white rounded-full hover:bg-gray-700 cursor-pointer"
       >
-        {audioRef.current.paused ? (
-          <HeadphoneOff size={24} />
-        ) : (
-          <Headphones size={24} />
-        )}
+        {isPlaying ? <Headphones size={24} /> : <HeadphoneOff size={24} />}
       </button>
     </div>
   );

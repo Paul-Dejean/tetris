@@ -80,7 +80,7 @@ export function TetrisBoard() {
       onLeftDrag: () => dispatch({ type: ActionType.MOVE_LEFT }),
       onRightDrag: () => dispatch({ type: ActionType.MOVE_RIGHT }),
       onDownDrag: (velocity) => {
-        if (velocity > 1) {
+        if (velocity > 1.2) {
           dispatch({ type: ActionType.HARD_DROP });
         } else {
           dispatch({ type: ActionType.MOVE_DOWN });

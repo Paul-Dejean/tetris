@@ -7,4 +7,13 @@
 
 body {
   overscroll-behavior: none;
+  background-image: url("/game-wallpaper.webp");
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: black;
 }
