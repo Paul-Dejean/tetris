@@ -4,6 +4,7 @@ import {
   getLastValidPosition,
   getPieceBlocksCoordinates,
 } from "../engine/board";
+import { getBlockSize } from "../utils/blockSize";
 
 export function useDropPieceAnimation({
   board,
@@ -54,16 +55,8 @@ function dropAnimation(
 ) {
   let start: number | null = null;
 
-  const initialStyle = {
-    backgroundColor: elements[0].style.backgroundColor,
-    borderColor: elements[0].style.borderColor,
-    borderWidth: elements[0].style.borderWidth,
-  };
-
   elements.forEach((element) => {
-    element.style.borderColor = "white";
-    element.style.borderWidth = "1px";
-    element.style.backgroundColor = "transparent";
+    element.style.opacity = "0.2";
   });
 
   const trailingLightDiv = createTrailingLightDiv(elements);
@@ -82,7 +75,7 @@ function dropAnimation(
     const progress = easeOut(elapsed / duration);
 
     trailingLightDiv.style.height =
-      Math.max(height + progress * distance, 30) + "px";
+      Math.max(height + progress * distance, getBlockSize() * 2) + "px";
 
     elements.forEach((element) => {
       pathElem.setAttribute("transform", `translate(0 ${progress * distance})`);
@@ -96,13 +89,8 @@ function dropAnimation(
       setTimeout(() => {
         document.body.removeChild(trailingLightDiv);
         elements.forEach((element) => {
-          element.style.borderWidth = initialStyle.borderWidth;
-          element.style.backgroundColor = initialStyle.backgroundColor;
-          element.style.borderColor = initialStyle.borderColor;
           element.style.opacity = "1";
-          element.style.boxShadow = "none";
           element.style.transform = "none";
-          element.style.backgroundImage = "none";
         });
       }, 0);
     }

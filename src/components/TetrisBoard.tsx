@@ -45,9 +45,8 @@ export function TetrisBoard() {
     cellHeight: getBlockSize(),
     dispatch,
     animation: state.currentAnimation,
-    duration: 150,
+    duration: 200,
   });
-
   useKeyboardControls({
     moveLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
     moveRight: () => dispatch({ type: ActionType.MOVE_RIGHT }),
