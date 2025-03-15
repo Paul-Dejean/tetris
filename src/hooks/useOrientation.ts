@@ -6,18 +6,18 @@ export enum ScreenOrientation {
 }
 export function useOrientation() {
   const [orientation, setOrientation] = useState(
-    window.matchMedia("(orientation: portrait)").matches
-      ? ScreenOrientation.PORTRAIT
-      : ScreenOrientation.LANDSCAPE
+    window.matchMedia("(orientation: landscape)").matches
+      ? ScreenOrientation.LANDSCAPE
+      : ScreenOrientation.PORTRAIT
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(orientation: portrait)");
+    const mediaQuery = window.matchMedia("(orientation: landscape)");
 
     const handleChange = () => {
       const newOrientation = mediaQuery.matches
-        ? ScreenOrientation.PORTRAIT
-        : ScreenOrientation.LANDSCAPE;
+        ? ScreenOrientation.LANDSCAPE
+        : ScreenOrientation.PORTRAIT;
       setOrientation(newOrientation);
     };
 

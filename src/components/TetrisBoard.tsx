@@ -17,6 +17,7 @@ import { getBlockSize } from "../utils/blockSize";
 import { TetrisBlock } from "./TetrisBlock";
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { ScreenOrientation, useOrientation } from "../hooks/useOrientation";
+import { isMobileDevice } from "../utils/isMobileDevice";
 
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
@@ -96,12 +97,14 @@ export function TetrisBoard() {
   useEffect(() => {
     if (
       state.status === GameStatus.PLAYING &&
-      orientation === ScreenOrientation.LANDSCAPE
+      orientation === ScreenOrientation.LANDSCAPE &&
+      isMobileDevice()
     ) {
       dispatch({ type: ActionType.PAUSE_GAME });
     } else if (
       state.status === GameStatus.PAUSED &&
-      orientation === ScreenOrientation.PORTRAIT
+      orientation === ScreenOrientation.PORTRAIT &&
+      isMobileDevice()
     ) {
       dispatch({ type: ActionType.RESUME_GAME });
     }
@@ -109,7 +112,7 @@ export function TetrisBoard() {
 
   return (
     <>
-      {orientation === ScreenOrientation.LANDSCAPE && (
+      {orientation === ScreenOrientation.LANDSCAPE && isMobileDevice() && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-y-8">
           <div className="text-white text-4xl">
             Please rotate your device to portrait mode
