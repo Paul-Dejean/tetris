@@ -16,6 +16,7 @@ export function resumeGame(state: State): State {
   }
   return {
     ...state,
+    status: GameStatus.PLAYING,
   };
 }
 
