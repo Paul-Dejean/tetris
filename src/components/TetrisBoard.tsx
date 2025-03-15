@@ -16,22 +16,7 @@ import { SettingsButton } from "./SettingsButton";
 import { getBlockSize } from "../utils/blockSize";
 import { TetrisBlock } from "./TetrisBlock";
 import { Tetromino, tetrominoes } from "../config/tetrominoes";
-
-export function throttle<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  delay: number
-): T {
-  let lastCall = 0;
-
-  return function (...args: unknown[]) {
-    const now = Date.now();
-
-    if (now - lastCall >= delay) {
-      lastCall = now;
-      return func(...args);
-    }
-  } as T;
-}
+import { ScreenOrientation, useOrientation } from "../hooks/useOrientation";
 
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
@@ -106,8 +91,31 @@ export function TetrisBoard() {
     };
   }, [dispatch]);
 
+  const orientation = useOrientation();
+
+  useEffect(() => {
+    if (
+      state.status === GameStatus.PLAYING &&
+      orientation === ScreenOrientation.LANDSCAPE
+    ) {
+      dispatch({ type: ActionType.PAUSE_GAME });
+    } else if (
+      state.status === GameStatus.PAUSED &&
+      orientation === ScreenOrientation.PORTRAIT
+    ) {
+      dispatch({ type: ActionType.RESUME_GAME });
+    }
+  }, [orientation, dispatch, state.status]);
+
   return (
     <>
+      {orientation === ScreenOrientation.LANDSCAPE && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-y-8">
+          <div className="text-white text-4xl">
+            Please rotate your device to portrait mode
+          </div>
+        </div>
+      )}
       <div className="h-full flex flex-col justify-center overflow-hidden bg-[url('/game-wallpaper.webp')] bg-cover bg-center">
         <div className="flex pt-8  flex-col-reverse md:flex-row justify-center items-center md:items-start gap-x-4 gap-y-4">
           <div className="self-align-start md:block hidden">
