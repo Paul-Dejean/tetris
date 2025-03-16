@@ -87,6 +87,7 @@ export function tick(state: State): State {
       currentPiece: updatedPiece,
     };
   }
+  console.log({ isBlocked: isBlocked(state.board, state.currentPiece) });
   if (
     state.lockDelayCounter <= LOCK_DELAY_FRAMES &&
     !isBlocked(state.board, state.currentPiece)
@@ -386,7 +387,7 @@ function tryMove(
 }
 
 function isBlocked(board: string[][], piece: Piece) {
-  const moves = [
+  const translations = [
     (piece: Piece) => ({
       ...piece,
       position: { ...piece.position, x: piece.position.x - 1 },
@@ -399,6 +400,8 @@ function isBlocked(board: string[][], piece: Piece) {
       ...piece,
       position: { ...piece.position, y: piece.position.y + 1 },
     }),
+  ];
+  const rotations = [
     (piece: Piece) => ({
       ...piece,
       rotation: ((piece.rotation + 1) % 4) as Rotation,
@@ -408,6 +411,17 @@ function isBlocked(board: string[][], piece: Piece) {
       rotation: ((piece.rotation + 3) % 4) as Rotation,
     }),
   ];
+
+  if (piece.type === "O") {
+    for (const move of translations) {
+      if (isPlacementValid(board, move(piece))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const moves = [...rotations, ...translations];
 
   for (const move of moves) {
     if (isPlacementValid(board, move(piece))) {
