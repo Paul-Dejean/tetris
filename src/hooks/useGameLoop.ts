@@ -2,8 +2,8 @@ import { useRef, useCallback, useEffect } from "react";
 import { Action, ActionType, GameStatus, State } from "../state/types";
 
 interface GameLoopProps {
-  state: State; // Replace with your state type
-  dispatch: (action: Action) => void; // Replace with your dispatch type
+  state: State;
+  dispatch: (action: Action) => void;
   speed: number;
 }
 
@@ -28,14 +28,7 @@ export function useGameLoop({ state, dispatch, speed }: GameLoopProps) {
       previousTimeRef.current = time;
       requestRef.current = requestAnimationFrame(gameLoop);
     },
-    [
-      dispatch,
-      state.status,
-      speed,
-      state.currentAnimation,
-      state.lockDelayCounter,
-      state.lockDelayResets,
-    ]
+    [dispatch, state.status, speed, state.currentAnimation]
   );
 
   useEffect(() => {

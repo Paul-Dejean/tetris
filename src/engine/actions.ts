@@ -22,10 +22,9 @@ import { createNewPiece } from "./PieceQueue";
 import { calculateScore } from "./score";
 
 export function moveDown(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
-
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
     ...piece,
     position: { ...piece.position, y: piece.position.y + 1 },
@@ -72,7 +71,7 @@ export function moveDown(state: State): State {
 }
 
 export function tick(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
 
@@ -87,7 +86,6 @@ export function tick(state: State): State {
       currentPiece: updatedPiece,
     };
   }
-  console.log({ isBlocked: isBlocked(state.board, state.currentPiece) });
   if (
     state.lockDelayCounter <= LOCK_DELAY_FRAMES &&
     !isBlocked(state.board, state.currentPiece)
@@ -129,7 +127,7 @@ export function tick(state: State): State {
 }
 
 export function moveLeft(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
@@ -144,7 +142,7 @@ export function moveLeft(state: State): State {
 }
 
 export function rotateRight(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
 
@@ -176,7 +174,7 @@ export function rotateRight(state: State): State {
 }
 
 export function rotateLeft(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
 
@@ -208,7 +206,7 @@ export function rotateLeft(state: State): State {
 }
 
 export function moveRight(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
 
@@ -223,7 +221,7 @@ export function moveRight(state: State): State {
   };
 }
 
-export function finishHardDrop(state: State): State {
+export function endHardDrop(state: State): State {
   const board = state.board.map((row) => [...row]);
 
   const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
@@ -265,7 +263,7 @@ export function finishHardDrop(state: State): State {
 }
 
 export function hardDrop(state: State): State {
-  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+  if (!canExecuteAction(state)) {
     return state;
   }
 
@@ -276,13 +274,10 @@ export function hardDrop(state: State): State {
 }
 
 export function holdPiece(state: State): State {
-  if (
-    !state.canHold ||
-    state.currentAnimation ||
-    state.status !== GameStatus.PLAYING
-  ) {
+  if (!canExecuteAction(state) || !state.canHold) {
     return state;
   }
+
   const piece = state.currentPiece;
   const board = state.board.map((row) => [...row]);
 
@@ -429,4 +424,8 @@ function isBlocked(board: string[][], piece: Piece) {
     }
   }
   return true;
+}
+
+function canExecuteAction(state: State) {
+  return !state.currentAnimation && state.status === GameStatus.PLAYING;
 }

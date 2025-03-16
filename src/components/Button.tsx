@@ -8,7 +8,7 @@ export function Button({
   return (
     <button
       type="button"
-      className="bg-background text-primary font-bold py-2 px-8 rounded border-1 text-xl border-primary cursor-pointer"
+      className="px-8 py-2 text-xl font-bold rounded cursor-pointer bg-background text-primary border-1 border-primary"
       onClick={onClick}
     >
       {children}

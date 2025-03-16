@@ -3,5 +3,10 @@ export function canUseTouchControls() {
 }
 
 export function isMobileDevice() {
-  return canUseTouchControls() && window.innerWidth < 768;
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUserAgent =
+    /android|iphone|ipad|ipod|blackberry|windows phone|opera mini|iemobile/.test(
+      userAgent
+    );
+  return canUseTouchControls() && isMobileUserAgent;
 }

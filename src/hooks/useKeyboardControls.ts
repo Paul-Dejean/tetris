@@ -3,7 +3,7 @@ import { useGame } from "../contexts/GameContext";
 import { Settings } from "../state/types";
 
 type KeyCallbacks = {
-  [key in keyof Settings]: () => void; // Allow any key mapping dynamically
+  [key in keyof Settings]: () => void;
 };
 export function useKeyboardControls(callbacks: KeyCallbacks) {
   const { state } = useGame();

@@ -20,7 +20,7 @@ export function SettingsButton() {
     <div>
       <button
         type="button"
-        className="p-2 bg-background text-white rounded-full hover:bg-gray-700 cursor-pointer"
+        className="p-2 text-white rounded-full cursor-pointer bg-background hover:bg-gray-700"
         onClick={() => dispatch({ type: ActionType.OPEN_SETTINGS_MODAL })}
       >
         <SettingsIcon size={24} />
@@ -43,8 +43,6 @@ function SettingsModal({
   const { dispatch, state } = useGame();
   const settings = state.settings;
 
-  // Load settings from localStorage
-
   const saveSettings = (settings: Settings) => {
     localStorage.setItem("keyboardSettings", JSON.stringify(settings));
     dispatch({ type: ActionType.SAVE_SETTINGS, payload: { settings } });
@@ -62,23 +60,23 @@ function SettingsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/75 flex justify-center items-center"
+      className="fixed inset-0 flex items-center justify-center bg-black/75"
       onClick={onClose}
     >
       <div
-        className="bg-white p-6 rounded-lg w-96 shadow-lg"
+        className="p-6 bg-white rounded-lg shadow-lg w-96"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold mb-4">Keyboard Settings</h2>
+        <h2 className="mb-4 text-xl font-bold">Keyboard Settings</h2>
 
         <div className="space-y-3">
           {Object.keys(settings).map((action) => (
-            <div key={action} className="flex justify-between items-center">
+            <div key={action} className="flex items-center justify-between">
               <span className="capitalize">
                 {action.replace(/([A-Z])/g, " $1")}
               </span>
               <button
-                className="border px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 cursor-pointer "
+                className="px-4 py-2 bg-gray-100 border rounded cursor-pointer hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 "
                 onClick={(e) => {
                   e.preventDefault();
                   const button = e.currentTarget;
@@ -99,11 +97,11 @@ function SettingsModal({
           ))}
         </div>
 
-        <div className="mt-4 flex justify-end gap-x-2">
+        <div className="flex justify-end mt-4 gap-x-2">
           {JSON.stringify(settings) !== JSON.stringify(initialSettings) && (
             <button
               onClick={() => saveSettings(initialSettings)}
-              className="px-4 py-2 bg-red-400 rounded  cursor-pointer"
+              className="px-4 py-2 bg-red-400 rounded cursor-pointer"
             >
               Reset
             </button>

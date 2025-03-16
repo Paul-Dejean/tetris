@@ -1,26 +1,30 @@
-import { useEffect } from "react";
-
 import { useGame } from "../contexts/GameContext";
 import { useKeyboardControls } from "../hooks/useKeyboardControls";
 import { ActionType, GameStatus } from "../state/types";
 import { HoldPiece } from "./HoldPiece";
 import { PieceQueue } from "./PieceQueue";
 
+import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { getLevel, getLevelSpeed, renderBoard } from "../engine";
+import { useAutoPauseResume } from "../hooks/useAutoPauseResume";
 import { useDropPieceAnimation } from "../hooks/useDropAnimation";
 import { useFadeOutAnimation } from "../hooks/useFadeOutAnimation";
 import { useGameLoop } from "../hooks/useGameLoop";
-import { useTouchControls } from "../hooks/useTouchControls";
-import { AudioPlayer } from "./AudioPlayer";
-import { SettingsButton } from "./SettingsButton";
-import { getBlockSize } from "../utils/blockSize";
-import { TetrisBlock } from "./TetrisBlock";
-import { Tetromino, tetrominoes } from "../config/tetrominoes";
 import { ScreenOrientation, useOrientation } from "../hooks/useOrientation";
+import { useTouchControls } from "../hooks/useTouchControls";
+
 import { isMobileDevice } from "../utils/isMobileDevice";
+import { AudioPlayer } from "./AudioPlayer";
+import { GameOverScreen } from "./GameOverScreen";
+import { LandscapeOrientationWarningScreen } from "./LandscapeOrientationWarningScreen";
+import { SettingsButton } from "./SettingsButton";
+import { TetrisBlock } from "./TetrisBlock";
+import { useOrientationPauseResume } from "../hooks/useOrientationPauseResume";
+import { useBlockSize } from "../hooks/useBlockSize";
 
 export function TetrisBoard() {
   const { state, dispatch } = useGame();
+  const blockSize = useBlockSize();
   const board = renderBoard(
     state.board,
     state.currentPiece,
@@ -42,11 +46,11 @@ export function TetrisBoard() {
   useDropPieceAnimation({
     board: state.board,
     piece: state.currentPiece,
-    cellHeight: getBlockSize(),
     dispatch,
     animation: state.currentAnimation,
     duration: 200,
   });
+
   useKeyboardControls({
     moveLeft: () => dispatch({ type: ActionType.MOVE_LEFT }),
     moveRight: () => dispatch({ type: ActionType.MOVE_RIGHT }),
@@ -65,7 +69,7 @@ export function TetrisBoard() {
       onLeftDrag: () => dispatch({ type: ActionType.MOVE_LEFT }),
       onRightDrag: () => dispatch({ type: ActionType.MOVE_RIGHT }),
       onDownDrag: (velocity) => {
-        if (velocity > 1.2) {
+        if (velocity > 2) {
           dispatch({ type: ActionType.HARD_DROP });
         } else {
           dispatch({ type: ActionType.MOVE_DOWN });
@@ -73,63 +77,30 @@ export function TetrisBoard() {
       },
     });
 
+  useAutoPauseResume();
+  const orientation = useOrientation();
+  useOrientationPauseResume();
+
   const level = getLevel(state.nbLinesCleared);
   const speed = getLevelSpeed(level);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        dispatch({ type: ActionType.PAUSE_GAME });
-      } else {
-        dispatch({ type: ActionType.RESUME_GAME });
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [dispatch]);
-
-  const orientation = useOrientation();
-
-  useEffect(() => {
-    if (
-      state.status === GameStatus.PLAYING &&
-      orientation === ScreenOrientation.LANDSCAPE &&
-      isMobileDevice()
-    ) {
-      dispatch({ type: ActionType.PAUSE_GAME });
-    } else if (
-      state.status === GameStatus.PAUSED &&
-      orientation === ScreenOrientation.PORTRAIT &&
-      isMobileDevice()
-    ) {
-      dispatch({ type: ActionType.RESUME_GAME });
-    }
-  }, [orientation, dispatch, state.status]);
 
   return (
     <>
       {orientation === ScreenOrientation.LANDSCAPE && isMobileDevice() && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-y-8">
-          <div className="text-white text-4xl">
-            Please rotate your device to portrait mode
-          </div>
-        </div>
+        <LandscapeOrientationWarningScreen />
       )}
       <div className="h-full flex flex-col justify-center overflow-hidden bg-[url('/game-wallpaper.webp')] bg-cover bg-center">
-        <div className="flex pt-8  flex-col-reverse md:flex-row justify-center items-center md:items-start gap-x-4 gap-y-4">
-          <div className="self-align-start md:block hidden">
+        <div className="flex flex-col-reverse items-center justify-center h-full pt-8 md:flex-row md:items-start gap-x-4 gap-y-4 md:h-auto">
+          <div className="hidden self-align-start md:block">
             <HoldPiece />
           </div>
-          <div>
-            <div
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="border-b border-l border-r border-primary border-solid bg-background"
-            >
+          <div
+            className="flex items-start justify-center flex-grow w-full h-full md:w-auto md:flex-none md:h-auto"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="border-b border-l border-r border-solid border-primary bg-background">
               {board.map((row, rowIndex) => (
                 <div className="flex" key={rowIndex} id={`row-${rowIndex}`}>
                   {row.map((cell, cellIndex) => {
@@ -137,8 +108,8 @@ export function TetrisBoard() {
                       return (
                         <div
                           style={{
-                            width: getBlockSize(),
-                            height: getBlockSize(),
+                            width: blockSize,
+                            height: blockSize,
                           }}
                         />
                       );
@@ -148,27 +119,26 @@ export function TetrisBoard() {
                       return <TetrisBlock id={id} color={color} isGhost />;
                     }
                     const color = tetrominoes[cell as Tetromino]?.color ?? "";
-
                     return <TetrisBlock id={id} key={id} color={color} />;
                   })}
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex flex-row md:flex-col items-end justify-between mb-4  px-4 gap-4 md:h-full">
-            <div className="flex flex-row gap-4 md:flex-col items-end md:items-stretch md:h-full">
+          <div className="flex flex-row items-end justify-between gap-4 px-4 mb-4 md:flex-col md:h-full">
+            <div className="flex flex-row items-end gap-4 md:flex-col md:items-stretch md:h-full">
               <PieceQueue />
 
-              <div className="text-white text-center border-2 border-white rounded-lg p-2 bg-background">
+              <div className="p-2 text-center text-white border-2 border-white rounded-lg bg-background">
                 <div>Level: {level}</div> <div>Speed: {speed}</div>
               </div>
 
-              <div className=" text-white text-center  border-2 border-white rounded-lg p-2 bg-background">
+              <div className="p-2 text-center text-white border-2 border-white rounded-lg bg-background">
                 Score: {state.score}
               </div>
             </div>
-            <div className="flex flex-col gap-y-2 justify-end md:self-start">
-              <div className="md:block hidden">
+            <div className="flex flex-col justify-end gap-y-2 md:self-start">
+              <div className="hidden md:block">
                 <SettingsButton />
               </div>
               <AudioPlayer />
@@ -176,18 +146,7 @@ export function TetrisBoard() {
           </div>
         </div>
 
-        {state.status === GameStatus.GAME_OVER && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-y-8">
-            <div className="text-white text-4xl">Game Over</div>
-            <div className="text-white text-2xl">Score: {state.score}</div>
-            <button
-              className="border-primary border-1 rounded-lg text-white py-2 px-4 text-xl cursor-pointer"
-              onClick={() => dispatch({ type: ActionType.RESTART_GAME })}
-            >
-              Restart
-            </button>
-          </div>
-        )}
+        {state.status === GameStatus.GAME_OVER && <GameOverScreen />}
       </div>
     </>
   );

@@ -1,5 +1,5 @@
 import { GAME_HEIGHT, GAME_WIDTH, INITIAL_POSITION } from "../config/constants";
-import { createNextPiecesQueue } from "../engine/PieceQueue";
+import { createNextPiecesQueue } from "../engine";
 import { Tetromino } from "../config/tetrominoes";
 import { State, GameStatus } from "./types";
 

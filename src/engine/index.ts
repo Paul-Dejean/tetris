@@ -7,7 +7,7 @@ import {
   rotateLeft,
   tick,
   clearFullLines,
-  finishHardDrop,
+  endHardDrop,
   holdPiece,
 } from "./actions";
 import {
@@ -16,9 +16,14 @@ import {
   resumeGame,
   startGameAnimation,
 } from "./status";
-import { renderBoard } from "./board";
+import {
+  getLastValidPosition,
+  getPieceBlocksCoordinates,
+  renderBoard,
+} from "./board";
 import { getLevel, getLevelSpeed } from "./score";
 import { closeSettings, openSettings } from "./settings";
+import { createNextPiecesQueue } from "./PieceQueue";
 
 export {
   moveDown,
@@ -39,5 +44,8 @@ export {
   tick,
   holdPiece,
   clearFullLines,
-  finishHardDrop,
+  endHardDrop,
+  getLastValidPosition,
+  getPieceBlocksCoordinates,
+  createNextPiecesQueue,
 };

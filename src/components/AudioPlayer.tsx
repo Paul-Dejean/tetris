@@ -39,13 +39,11 @@ export function AudioPlayer() {
     const audio = audioRef.current;
     audio.addEventListener("ended", handleEnded);
 
-    // Listen for play and pause events to sync UI state
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
 
-    // Auto-play on mount/update
     audio.play().catch(() => {});
 
     return () => {
@@ -75,7 +73,7 @@ export function AudioPlayer() {
       <button
         onClick={() => toggleAudio()}
         type="button"
-        className="p-2 bg-background text-white rounded-full hover:bg-gray-700 cursor-pointer"
+        className="p-2 text-white rounded-full cursor-pointer bg-background hover:bg-gray-700"
       >
         {isPlaying ? <Headphones size={24} /> : <HeadphoneOff size={24} />}
       </button>

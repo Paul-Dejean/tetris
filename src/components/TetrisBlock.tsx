@@ -1,4 +1,4 @@
-import { getBlockSize } from "../utils/blockSize";
+import { useBlockSize } from "../hooks/useBlockSize";
 
 export function TetrisBlock({
   id,
@@ -9,7 +9,7 @@ export function TetrisBlock({
   color: string;
   isGhost?: boolean;
 }) {
-  const blockSize = getBlockSize();
+  const blockSize = useBlockSize();
   const blockStyle = {
     width: blockSize,
     height: blockSize,

@@ -1,26 +1,22 @@
 import { useEffect, useRef } from "react";
 import { Action, ActionType, GameAnimation, Piece } from "../state/types";
-import {
-  getLastValidPosition,
-  getPieceBlocksCoordinates,
-} from "../engine/board";
-import { getBlockSize } from "../utils/blockSize";
+import { getLastValidPosition, getPieceBlocksCoordinates } from "../engine";
+import { useBlockSize } from "./useBlockSize";
 
 export function useDropPieceAnimation({
   board,
   piece,
-  cellHeight,
   dispatch,
   animation,
   duration = 200,
 }: {
   board: string[][];
   piece: Piece;
-  cellHeight: number;
   animation: GameAnimation | null;
   dispatch: (action: Action) => void;
   duration?: number;
 }) {
+  const blockSize = useBlockSize();
   const isStarted = useRef(false);
   useEffect(() => {
     if (!isStarted.current && animation === GameAnimation.DROP_PIECE) {
@@ -37,20 +33,27 @@ export function useDropPieceAnimation({
 
       const gridDistance = lastValidPosition.y - piece.position.y;
 
-      const dropDistance = gridDistance * cellHeight;
+      const dropDistance = gridDistance * blockSize;
 
-      dropAnimation(elements as HTMLElement[], dropDistance, duration, () => {
-        isStarted.current = false;
-        dispatch({ type: ActionType.END_HARD_DROP });
-      });
+      dropAnimation(
+        elements as HTMLElement[],
+        dropDistance,
+        duration,
+        blockSize,
+        () => {
+          isStarted.current = false;
+          dispatch({ type: ActionType.END_HARD_DROP });
+        }
+      );
     }
-  }, [board, piece, cellHeight, duration, dispatch, animation]);
+  }, [board, piece, blockSize, duration, dispatch, animation]);
 }
 
 function dropAnimation(
   elements: HTMLElement[],
   distance: number,
   duration: number,
+  blockSize: number,
   callback?: () => void
 ) {
   let start: number | null = null;
@@ -75,7 +78,7 @@ function dropAnimation(
     const progress = easeOut(elapsed / duration);
 
     trailingLightDiv.style.height =
-      Math.max(height + progress * distance, getBlockSize() * 2) + "px";
+      Math.max(height + progress * distance, blockSize * 2) + "px";
 
     elements.forEach((element) => {
       pathElem.setAttribute("transform", `translate(0 ${progress * distance})`);
@@ -153,14 +156,12 @@ function createTrailingLightDiv(elements: HTMLElement[]) {
     }
   > = {};
   blocks.forEach((block) => {
-    // If needed, use Math.round(block.left) to account for minor differences.
     const key = block.left;
     if (!columns[key] || block.bottom > columns[key].bottom) {
       columns[key] = block;
     }
   });
   const bottomPoints = Object.values(columns)
-    // Sort by horizontal (left) position so the path will follow the bottom edge
     .sort((a, b) => a.left - b.left)
     .map((block) => ({ left: block.left, bottom: block.bottom }));
 
@@ -201,10 +202,8 @@ function createTrailingLightDiv(elements: HTMLElement[]) {
     pathData += `H ${posX} `;
   }
   pathData += `H ${width} `;
-
-  pathData += `V -300 `; // Close the path.
+  pathData += `V -300 `;
   pathData += `H -300 `;
-
   pathData += "Z";
 
   const pathElem = document.createElementNS(svgNS, "path");
@@ -212,7 +211,6 @@ function createTrailingLightDiv(elements: HTMLElement[]) {
   clipPath.appendChild(pathElem);
   svg.appendChild(clipPath);
 
-  // Append the SVG to newDiv so it's a child.
   newDiv.appendChild(svg);
   return newDiv;
 }

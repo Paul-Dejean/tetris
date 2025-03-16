@@ -7,7 +7,7 @@ type DragDetectorOptions = {
   onDownDrag?: (velocity: number) => void;
 };
 
-const MOVE_THRESHOLD = 15;
+const MOVE_THRESHOLD = 20;
 
 export function useTouchControls({
   onTap,
@@ -39,41 +39,45 @@ export function useTouchControls({
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLElement>) => {
-    const touch = e.touches[0];
-    const { lastX, lastY } = touchDataRef.current;
-    const currentX = touch.clientX;
-    const currentY = touch.clientY;
+    let animationFrameId = null;
+    if (animationFrameId) return;
+    animationFrameId = requestAnimationFrame(() => {
+      const touch = e.touches[0];
+      const { lastX, lastY } = touchDataRef.current;
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
 
-    const deltaX = currentX - lastX;
-    const deltaY = currentY - lastY;
+      const deltaX = currentX - lastX;
+      const deltaY = currentY - lastY;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (Math.abs(deltaX) > MOVE_THRESHOLD) {
-        if (deltaX < 0) {
-          onLeftDrag?.();
-        } else {
-          onRightDrag?.();
-        }
-        touchDataRef.current.lastX = currentX;
-        touchDataRef.current.lastY = currentY;
-      }
-    } else {
-      const now = Date.now();
-      const deltaTime = now - touchDataRef.current.startTime;
-      if (deltaTime > 0) {
-        const velocity = Math.abs(deltaY) / deltaTime;
-        if (deltaY > MOVE_THRESHOLD) {
-          onDownDrag?.(velocity);
-          touchDataRef.current.startTime = now;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (Math.abs(deltaX) > MOVE_THRESHOLD) {
+          if (deltaX < 0) {
+            onLeftDrag?.();
+          } else {
+            onRightDrag?.();
+          }
           touchDataRef.current.lastX = currentX;
           touchDataRef.current.lastY = currentY;
         }
+      } else {
+        const now = Date.now();
+        const deltaTime = now - touchDataRef.current.startTime;
+        if (deltaTime > 0) {
+          const velocity = Math.abs(deltaY) / deltaTime;
+          if (deltaY > MOVE_THRESHOLD) {
+            onDownDrag?.(velocity);
+            touchDataRef.current.startTime = now;
+            touchDataRef.current.lastX = currentX;
+            touchDataRef.current.lastY = currentY;
+          }
+        }
       }
-    }
+      animationFrameId = null;
+    });
   };
 
   const handleTouchEnd = (e: TouchEvent<HTMLElement>) => {
-    e.preventDefault();
     const touch = e.changedTouches[0];
     const diffX = touch.pageX - touchDataRef.current.startX;
     const diffY = touch.pageY - touchDataRef.current.startY;

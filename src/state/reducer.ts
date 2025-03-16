@@ -9,10 +9,12 @@ import {
   closeSettings,
   holdPiece,
   clearFullLines,
-  finishHardDrop,
+  endHardDrop,
   rotateLeft,
   rotateRight,
   tick,
+  startGameAnimation,
+  endGameAnimation,
 } from "../engine";
 import { updateLockDelay } from "../engine/actions";
 
@@ -59,13 +61,13 @@ export function reducer(state: State, action: Action) {
       return clearFullLines(state);
 
     case ActionType.START_ANIMATION:
-      return { ...state, currentAnimation: action.payload.animation };
+      return startGameAnimation(state, action.payload.animation);
 
     case ActionType.END_ANIMATION:
-      return { ...state, currentAnimation: null };
+      return endGameAnimation(state);
 
     case ActionType.END_HARD_DROP:
-      return finishHardDrop(state);
+      return endHardDrop(state);
 
     case ActionType.OPEN_SETTINGS_MODAL:
       return openSettings(state);
