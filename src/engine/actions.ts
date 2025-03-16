@@ -10,6 +10,7 @@ import {
   addPieceToBoard,
   getFullLines,
   getLastValidPosition,
+  getPieceBlocksCoordinates,
   isPlacementValid,
 } from "./board";
 import { createNewPiece } from "./PieceQueue";
@@ -81,11 +82,23 @@ export function rotateRight(state: State): State {
     return state;
   }
 
-  const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
-    ...piece,
-    rotation: ((piece.rotation + 1) % 4) as Rotation,
-  }));
+  const rotatedPiece = {
+    ...state.currentPiece,
+    rotation: ((state.currentPiece.rotation + 1) % 4) as Rotation,
+  };
 
+  const coordinates = getPieceBlocksCoordinates(rotatedPiece);
+
+  const minX = Math.min(...coordinates.map((c) => c.x));
+  const maxX = Math.max(...coordinates.map((c) => c.x));
+
+  if (minX < 0) {
+    rotatedPiece.position.x -= minX;
+  } else if (maxX >= GAME_WIDTH) {
+    rotatedPiece.position.x -= maxX - GAME_WIDTH + 1;
+  }
+
+  const updatedPiece = tryMove(state.board, rotatedPiece, (piece) => piece);
   return {
     ...state,
     currentPiece: updatedPiece,
@@ -97,11 +110,23 @@ export function rotateLeft(state: State): State {
     return state;
   }
 
-  const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
-    ...piece,
-    rotation: ((piece.rotation + 3) % 4) as Rotation,
-  }));
+  const rotatedPiece = {
+    ...state.currentPiece,
+    rotation: ((state.currentPiece.rotation + 3) % 4) as Rotation,
+  };
 
+  const coordinates = getPieceBlocksCoordinates(rotatedPiece);
+
+  const minX = Math.min(...coordinates.map((c) => c.x));
+  const maxX = Math.max(...coordinates.map((c) => c.x));
+
+  if (minX < 0) {
+    rotatedPiece.position.x -= minX;
+  } else if (maxX >= GAME_WIDTH) {
+    rotatedPiece.position.x -= maxX - GAME_WIDTH + 1;
+  }
+
+  const updatedPiece = tryMove(state.board, rotatedPiece, (piece) => piece);
   return {
     ...state,
     currentPiece: updatedPiece,
