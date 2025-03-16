@@ -87,8 +87,10 @@ export function tick(state: State): State {
       currentPiece: updatedPiece,
     };
   }
-
-  if (state.lockDelayCounter <= LOCK_DELAY_FRAMES) {
+  if (
+    state.lockDelayCounter <= LOCK_DELAY_FRAMES &&
+    !isBlocked(state.board, state.currentPiece)
+  ) {
     return {
       ...state,
     };
@@ -381,4 +383,36 @@ function tryMove(
   }
 
   return updatedPiece;
+}
+
+function isBlocked(board: string[][], piece: Piece) {
+  const moves = [
+    (piece: Piece) => ({
+      ...piece,
+      position: { ...piece.position, x: piece.position.x - 1 },
+    }),
+    (piece: Piece) => ({
+      ...piece,
+      position: { ...piece.position, x: piece.position.x + 1 },
+    }),
+    (piece: Piece) => ({
+      ...piece,
+      position: { ...piece.position, y: piece.position.y + 1 },
+    }),
+    (piece: Piece) => ({
+      ...piece,
+      rotation: ((piece.rotation + 1) % 4) as Rotation,
+    }),
+    (piece: Piece) => ({
+      ...piece,
+      rotation: ((piece.rotation + 3) % 4) as Rotation,
+    }),
+  ];
+
+  for (const move of moves) {
+    if (isPlacementValid(board, move(piece))) {
+      return false;
+    }
+  }
+  return true;
 }
