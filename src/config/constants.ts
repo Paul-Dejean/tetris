@@ -5,5 +5,5 @@ export const INITIAL_POSITION = {
   y: 0,
 } as const;
 
-export const LOCK_DELAY_FRAMES = 200;
+export const LOCK_DELAY_FRAMES = 100;
 export const MAX_LOCK_DELAY_RESETS = 10;
