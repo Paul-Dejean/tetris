@@ -1,4 +1,4 @@
-import { GAME_HEIGHT, GAME_WIDTH, initialPosition } from "../config/constants";
+import { GAME_HEIGHT, GAME_WIDTH, INITIAL_POSITION } from "../config/constants";
 import { createNextPiecesQueue } from "../engine/PieceQueue";
 import { Tetromino } from "../config/tetrominoes";
 import { State, GameStatus } from "./types";
@@ -23,7 +23,7 @@ export function init(): State {
     ),
     currentPiece: {
       type: currentPieceType,
-      position: initialPosition,
+      position: INITIAL_POSITION,
       rotation: 0,
       isGhost: false,
     },
@@ -36,5 +36,7 @@ export function init(): State {
     currentAnimation: null,
     settingsModalOpen: false,
     settings: initialSettings,
+    lockDelayCounter: 0,
+    lockDelayResets: 0,
   };
 }

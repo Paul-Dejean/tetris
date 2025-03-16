@@ -5,6 +5,10 @@ import {
   hardDrop,
   rotateRight,
   rotateLeft,
+  tick,
+  clearFullLines,
+  finishHardDrop,
+  holdPiece,
 } from "./actions";
 import {
   endGameAnimation,
@@ -32,4 +36,8 @@ export {
   endGameAnimation,
   openSettings,
   closeSettings,
+  tick,
+  holdPiece,
+  clearFullLines,
+  finishHardDrop,
 };

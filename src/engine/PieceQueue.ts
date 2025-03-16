@@ -1,4 +1,4 @@
-import { initialPosition } from "../config/constants";
+import { INITIAL_POSITION } from "../config/constants";
 import { tetrominoes, Tetromino } from "../config/tetrominoes";
 import { Piece } from "../state/types";
 
@@ -25,7 +25,7 @@ export function createNewPiece(nextPiecesQueue: Tetromino[]): {
   return {
     piece: {
       type,
-      position: initialPosition,
+      position: INITIAL_POSITION,
       rotation: 0,
       isGhost: false,
     },

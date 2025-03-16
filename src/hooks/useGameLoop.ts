@@ -22,11 +22,20 @@ export function useGameLoop({ state, dispatch, speed }: GameLoopProps) {
           dispatch({ type: ActionType.TICK });
           timeAccumulatorRef.current = 0;
         }
+
+        dispatch({ type: ActionType.UPDATE_LOCK_DELAY });
       }
       previousTimeRef.current = time;
       requestRef.current = requestAnimationFrame(gameLoop);
     },
-    [dispatch, state.status, speed, state.currentAnimation]
+    [
+      dispatch,
+      state.status,
+      speed,
+      state.currentAnimation,
+      state.lockDelayCounter,
+      state.lockDelayResets,
+    ]
   );
 
   useEffect(() => {

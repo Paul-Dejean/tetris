@@ -23,6 +23,8 @@ export type State = {
   currentAnimation: GameAnimation | null;
   settingsModalOpen: boolean;
   settings: Settings;
+  lockDelayCounter: number;
+  lockDelayResets: number;
 };
 
 export enum GameStatus {
@@ -61,6 +63,9 @@ export type Action =
   | {
       type: ActionType.SAVE_SETTINGS;
       payload: { settings: Settings };
+    }
+  | {
+      type: ActionType.UPDATE_LOCK_DELAY;
     };
 
 export enum ActionType {
@@ -82,6 +87,7 @@ export enum ActionType {
   OPEN_SETTINGS_MODAL = "OPEN_SETTINGS_MODAL",
   CLOSE_SETTINGS_MODAL = "CLOSE_SETTINGS_MODAL",
   SAVE_SETTINGS = "SAVE_SETTINGS",
+  UPDATE_LOCK_DELAY = "UPDATE_LOCK_DELAY",
 }
 
 export enum GameAnimation {

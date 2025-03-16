@@ -1,4 +1,9 @@
-import { GAME_WIDTH, initialPosition } from "../config/constants";
+import {
+  GAME_WIDTH,
+  INITIAL_POSITION,
+  LOCK_DELAY_FRAMES,
+  MAX_LOCK_DELAY_RESETS,
+} from "../config/constants";
 import {
   GameAnimation,
   GameStatus,
@@ -42,6 +47,64 @@ export function moveDown(state: State): State {
       board,
       fullLines,
       currentAnimation: GameAnimation.CLEAR_FULL_LINES,
+      lockDelayCounter: 0,
+      lockDelayResets: 0,
+    };
+  }
+
+  const { piece: newPiece, nextPiecesQueue } = createNewPiece([
+    ...state.nextPiecesQueue,
+  ]);
+
+  const isGameOver = !isPlacementValid(board, newPiece);
+  const newState = {
+    ...state,
+    status: isGameOver ? GameStatus.GAME_OVER : GameStatus.PLAYING,
+    board,
+    currentPiece: newPiece,
+    nextPiecesQueue,
+    canHold: true,
+    fullLines,
+    lockDelayCounter: 0,
+    lockDelayResets: 0,
+  };
+  return newState;
+}
+
+export function tick(state: State): State {
+  if (state.currentAnimation || state.status !== GameStatus.PLAYING) {
+    return state;
+  }
+
+  const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
+    ...piece,
+    position: { ...piece.position, y: piece.position.y + 1 },
+  }));
+
+  if (updatedPiece !== state.currentPiece) {
+    return {
+      ...state,
+      currentPiece: updatedPiece,
+    };
+  }
+
+  if (state.lockDelayCounter <= LOCK_DELAY_FRAMES) {
+    return {
+      ...state,
+    };
+  }
+
+  const board = state.board.map((row) => [...row]);
+  addPieceToBoard(board, state.currentPiece);
+  const fullLines = getFullLines(board);
+  if (fullLines.length) {
+    return {
+      ...state,
+      board,
+      fullLines,
+      currentAnimation: GameAnimation.CLEAR_FULL_LINES,
+      lockDelayCounter: 0,
+      lockDelayResets: 0,
     };
   }
 
@@ -98,7 +161,11 @@ export function rotateRight(state: State): State {
     rotatedPiece.position.x -= maxX - GAME_WIDTH + 1;
   }
 
-  const updatedPiece = tryMove(state.board, rotatedPiece, (piece) => piece);
+  const updatedPiece = tryMove(
+    state.board,
+    state.currentPiece,
+    () => rotatedPiece
+  );
   return {
     ...state,
     currentPiece: updatedPiece,
@@ -126,7 +193,11 @@ export function rotateLeft(state: State): State {
     rotatedPiece.position.x -= maxX - GAME_WIDTH + 1;
   }
 
-  const updatedPiece = tryMove(state.board, rotatedPiece, (piece) => piece);
+  const updatedPiece = tryMove(
+    state.board,
+    state.currentPiece,
+    () => rotatedPiece
+  );
   return {
     ...state,
     currentPiece: updatedPiece,
@@ -166,6 +237,8 @@ export function finishHardDrop(state: State): State {
       fullLines,
       currentPiece: updatedPiece,
       currentAnimation: GameAnimation.CLEAR_FULL_LINES,
+      lockDelayCounter: 0,
+      lockDelayResets: 0,
     };
   }
 
@@ -182,6 +255,8 @@ export function finishHardDrop(state: State): State {
     fullLines,
     canHold: true,
     currentAnimation: null,
+    lockDelayCounter: 0,
+    lockDelayResets: 0,
   };
   return newState;
 }
@@ -225,7 +300,7 @@ export function holdPiece(state: State): State {
   }
   const newPiece = {
     type: state.holdPiece,
-    position: initialPosition,
+    position: INITIAL_POSITION,
     rotation: 0 as Rotation,
     isGhost: false,
   };
@@ -263,6 +338,35 @@ export function clearFullLines(state: State): State {
     nbLinesCleared: state.nbLinesCleared + nbLinesCleared,
   };
   return newState;
+}
+
+export function updateLockDelay(state: State): State {
+  const updatedPiece = tryMove(state.board, state.currentPiece, (piece) => ({
+    ...piece,
+    position: { ...piece.position, y: piece.position.y + 1 },
+  }));
+
+  if (updatedPiece === state.currentPiece) {
+    return {
+      ...state,
+      lockDelayCounter: state.lockDelayCounter + 1,
+    };
+  }
+
+  if (
+    updatedPiece !== state.currentPiece &&
+    state.lockDelayResets < MAX_LOCK_DELAY_RESETS &&
+    state.lockDelayCounter > 0
+  ) {
+    return {
+      ...state,
+      lockDelayResets: state.lockDelayResets + 1,
+      lockDelayCounter: 0,
+    };
+  }
+  return {
+    ...state,
+  };
 }
 
 function tryMove(

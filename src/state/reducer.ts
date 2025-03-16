@@ -7,14 +7,15 @@ import {
   hardDrop,
   openSettings,
   closeSettings,
-} from "../engine";
-import {
   holdPiece,
   clearFullLines,
   finishHardDrop,
   rotateLeft,
   rotateRight,
-} from "../engine/actions";
+  tick,
+} from "../engine";
+import { updateLockDelay } from "../engine/actions";
+
 import { saveSettings } from "../engine/settings";
 import { init } from "./state";
 import { Action, ActionType, State } from "./types";
@@ -31,8 +32,10 @@ export function reducer(state: State, action: Action) {
       return resumeGame(state);
 
     case ActionType.MOVE_DOWN:
-    case ActionType.TICK:
       return moveDown(state);
+
+    case ActionType.TICK:
+      return tick(state);
 
     case ActionType.MOVE_LEFT:
       return moveLeft(state);
@@ -72,6 +75,9 @@ export function reducer(state: State, action: Action) {
 
     case ActionType.SAVE_SETTINGS:
       return saveSettings(state, action.payload.settings);
+
+    case ActionType.UPDATE_LOCK_DELAY:
+      return updateLockDelay(state);
 
     default: {
       const exhaustiveCheck: never = action;
