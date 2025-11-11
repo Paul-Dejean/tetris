@@ -7,7 +7,7 @@ type DragDetectorOptions = {
   onDownDrag?: (velocity: number) => void;
 };
 
-const HORIZONTAL_THRESHOLD = 25;
+const HORIZONTAL_THRESHOLD = 20;
 const VERTICAL_THRESHOLD = 15;
 const TAP_THRESHOLD = 10;
 
