@@ -7,7 +7,9 @@ type DragDetectorOptions = {
   onDownDrag?: (velocity: number) => void;
 };
 
-const MOVE_THRESHOLD = 20;
+const HORIZONTAL_THRESHOLD = 25;
+const VERTICAL_THRESHOLD = 15;
+const TAP_THRESHOLD = 10;
 
 export function useTouchControls({
   onTap,
@@ -23,7 +25,14 @@ export function useTouchControls({
     startTime: 0,
   });
 
+  const animationFrameRef = useRef<number | null>(null);
+
   const handleTouchStart = (e: TouchEvent<HTMLElement>) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
     const touch = e.touches[0];
     const x = touch.clientX;
     const y = touch.clientY;
@@ -39,10 +48,10 @@ export function useTouchControls({
   };
 
   const handleTouchMove = (e: TouchEvent<HTMLElement>) => {
-    let animationFrameId = null;
-    if (animationFrameId) return;
-    animationFrameId = requestAnimationFrame(() => {
+    if (animationFrameRef.current) return;
+    animationFrameRef.current = requestAnimationFrame(() => {
       const touch = e.touches[0];
+      if (!touch) return;
       const { lastX, lastY } = touchDataRef.current;
       const currentX = touch.clientX;
       const currentY = touch.clientY;
@@ -51,7 +60,7 @@ export function useTouchControls({
       const deltaY = currentY - lastY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (Math.abs(deltaX) > MOVE_THRESHOLD) {
+        if (Math.abs(deltaX) > HORIZONTAL_THRESHOLD) {
           if (deltaX < 0) {
             onLeftDrag?.();
           } else {
@@ -65,7 +74,7 @@ export function useTouchControls({
         const deltaTime = now - touchDataRef.current.startTime;
         if (deltaTime > 0) {
           const velocity = Math.abs(deltaY) / deltaTime;
-          if (deltaY > MOVE_THRESHOLD) {
+          if (deltaY > VERTICAL_THRESHOLD) {
             onDownDrag?.(velocity);
             touchDataRef.current.startTime = now;
             touchDataRef.current.lastX = currentX;
@@ -73,15 +82,20 @@ export function useTouchControls({
           }
         }
       }
-      animationFrameId = null;
+      animationFrameRef.current = null;
     });
   };
 
   const handleTouchEnd = (e: TouchEvent<HTMLElement>) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     const touch = e.changedTouches[0];
-    const diffX = touch.pageX - touchDataRef.current.startX;
-    const diffY = touch.pageY - touchDataRef.current.startY;
-    if (Math.abs(diffX) < MOVE_THRESHOLD && Math.abs(diffY) < MOVE_THRESHOLD) {
+    if (!touch) return;
+    const diffX = touch.clientX - touchDataRef.current.startX;
+    const diffY = touch.clientY - touchDataRef.current.startY;
+    if (Math.abs(diffX) < TAP_THRESHOLD && Math.abs(diffY) < TAP_THRESHOLD) {
       onTap?.();
     }
   };
